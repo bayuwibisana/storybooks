@@ -14,12 +14,16 @@ export const GET: APIRoute = async ({ params }) => {
   try {
     const res = await getR2Object(r2Key);
     if (!res || !res.Body) {
-      return new Response('Page image not found in R2', { status: 404 });
+      return new Response(`Page image not found in R2: ${r2Key}`, { status: 404 });
     }
 
-    const stream = typeof (res.Body as any)?.transformToWebStream === 'function'
-      ? (res.Body as any).transformToWebStream()
-      : Readable.toWeb(res.Body as Readable) as ReadableStream;
+    let stream: any = res.Body;
+    if (typeof (res.Body as any)?.transformToWebStream === 'function') {
+      stream = (res.Body as any).transformToWebStream();
+    } else if (typeof Readable?.toWeb === 'function' && !(stream instanceof ReadableStream)) {
+      stream = Readable.toWeb(res.Body as Readable);
+    }
+
     return new Response(stream, {
       status: 200,
       headers: {
@@ -31,6 +35,6 @@ export const GET: APIRoute = async ({ params }) => {
     });
   } catch (err: any) {
     console.error(`Error streaming ${r2Key} from R2:`, err);
-    return new Response('Error fetching from R2', { status: 500 });
+    return new Response(`Error fetching from R2: ${err?.message || String(err)}`, { status: 500 });
   }
 };

@@ -5,6 +5,12 @@
   "compatibility_flags": [
     "nodejs_compat"
   ],
+  "r2_buckets": [
+    {
+      "binding": "R2_BUCKET_BINDING",
+      "bucket_name": "kisah-krayon"
+    }
+  ],
   "vars": {
     "PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_aW5jbHVkZWQtcGxhdHlwdXMtMjAxOC5jbGVyay5hY2NvdW50cy5kZXYk",
     "PUBLIC_SITE_URL": "https://storybooks.bayuwibisana15.workers.dev",
