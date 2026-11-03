@@ -10,6 +10,7 @@ import { getViewer } from '../lib/session';
 
 // Memoised on locals — the layout already paid for this.
 let viewer: any = { signedIn: false };
+let readable = new Set<string>();
 let rows: any[] = [];
 let lockedCount = 0;
 let payable: any[] = [];
@@ -17,7 +18,7 @@ let loadError: string | null = null;
 
 try {
   viewer = await getViewer(Astro);
-  const readable = await readableStoryIds(db, viewer);
+  readable = await readableStoryIds(db, viewer);
 
   rows = await db
     .select({
