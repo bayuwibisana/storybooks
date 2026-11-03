@@ -9,29 +9,49 @@ import { readableStoryIds } from '../db/entitlements';
 import { getViewer } from '../lib/session';
 
 // Memoised on locals — the layout already paid for this.
-const viewer = await getViewer(Astro);
-const readable = await readableStoryIds(db, viewer);
+let viewer: any = { signedIn: false };
+let rows: any[] = [];
+let lockedCount = 0;
+let payable: any[] = [];
+let loadError: string | null = null;
 
-const rows = await db
-  .select({
-    id: stories.id,
-    storyNumber: stories.storyNumber,
-    title: stories.title,
-    categoryLabel: stories.categoryLabel,
-    ageGroup: stories.ageGroup,
-    synopsis: stories.synopsis,
-    coverImage: stories.coverImage,
-    isFree: stories.isFree,
-  })
-  .from(stories)
-  .where(eq(stories.isPublished, true))
-  .orderBy(asc(stories.storyNumber));
+try {
+  viewer = await getViewer(Astro);
+  const readable = await readableStoryIds(db, viewer);
 
-const lockedCount = rows.filter((s) => !readable.has(s.id)).length;
-const payable = rows.filter((s) => !s.isFree);
+  rows = await db
+    .select({
+      id: stories.id,
+      storyNumber: stories.storyNumber,
+      title: stories.title,
+      categoryLabel: stories.categoryLabel,
+      ageGroup: stories.ageGroup,
+      synopsis: stories.synopsis,
+      coverImage: stories.coverImage,
+      isFree: stories.isFree,
+    })
+    .from(stories)
+    .where(eq(stories.isPublished, true))
+    .orderBy(asc(stories.storyNumber));
+
+  lockedCount = rows.filter((s) => !readable.has(s.id)).length;
+  payable = rows.filter((s) => !s.isFree);
+} catch (err: any) {
+  console.error('[index.astro] Data load error:', err);
+  loadError = err?.message || String(err);
+}
 ---
 
 <Layout title="Kisah Krayon — Perpustakaan">
+  {loadError && (
+    <div style="background:#fff3cd;border:1px solid #ffeeba;color:#856404;padding:1.25rem 1.5rem;border-radius:1rem;margin-bottom:1.5rem">
+      <strong style="display:block;margin-bottom:0.4rem;font-size:1.05rem">⚠️ Perhatian: Koneksi Database Sedang Diinisialisasi</strong>
+      <p style="margin:0 0 0.5rem;font-size:0.9rem">Aplikasi web belum dapat terhubung ke database Neon. Pesan error:</p>
+      <code style="display:block;background:#fff;padding:0.75rem 1rem;border-radius:0.5rem;border:1px solid #e2e8f0;font-size:0.85rem;word-break:break-all">{loadError}</code>
+      <p style="margin:0.75rem 0 0;font-size:0.85rem;color:#666">Pastikan <code>DATABASE_URL</code> sudah ditambahkan pada Cloudflare Dashboard > Settings > Variables and Secrets.</p>
+    </div>
+  )}
+
   <h1 style="font-size:1.75rem;margin:0 0 0.25rem;letter-spacing:-0.02em">
     36 buku cerita bergambar
   </h1>

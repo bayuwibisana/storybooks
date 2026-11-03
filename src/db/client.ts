@@ -1,26 +1,39 @@
-import { Pool } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
+import { neon } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-http';
 import * as schema from './schema';
 
-/**
- * Astro/Vite does not copy `.env` into `process.env` for plain server modules —
- * only into `import.meta.env` — while Vercel injects real environment variables
- * into `process.env` and leaves `import.meta.env` without them. Read both.
- */
-const connectionString = import.meta.env.DATABASE_URL ?? process.env.DATABASE_URL;
-
-if (!connectionString) {
-  throw new Error(
-    'DATABASE_URL is not set. Add the Neon pooled connection string to web/.env (local) or the Vercel project settings (production).',
+function getConnectionString(): string | undefined {
+  return (
+    (typeof process !== 'undefined' ? process.env?.DATABASE_URL : undefined) ||
+    import.meta.env.DATABASE_URL ||
+    (globalThis as any)?.DATABASE_URL
   );
 }
 
-/**
- * Neon serverless driver over WebSockets (not the HTTP driver) because payment
- * flows need interactive transactions: `grantStory` locks an entitlement row,
- * inserts a grant and decrements credits atomically. The HTTP driver cannot do
- * that. Vercel caches the Pool per lambda instance, so this stays cheap.
- */
-export const db = drizzle(new Pool({ connectionString }), { schema });
+let _db: any = null;
 
-export type Db = typeof db;
+export function resolveDb() {
+  if (_db) return _db;
+  const connectionString = getConnectionString();
+  if (!connectionString) {
+    throw new Error(
+      'DATABASE_URL is not set. Add the Neon connection string in Cloudflare Dashboard (Settings > Variables and Secrets).',
+    );
+  }
+  const sql = neon(connectionString);
+  _db = drizzle(sql, { schema });
+  return _db;
+}
+
+export const db = new Proxy({} as any, {
+  get(_target, prop) {
+    const instance = resolveDb();
+    const value = (instance as any)[prop];
+    if (typeof value === 'function') {
+      return value.bind(instance);
+    }
+    return value;
+  },
+});
+
+export type Db = ReturnType<typeof resolveDb>;
