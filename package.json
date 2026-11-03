@@ -11,7 +11,7 @@
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
-    "@astrojs/vercel": "^11.0.16",
+    "@astrojs/cloudflare": "^14.4.4",
     "@aws-sdk/client-s3": "^3.1161.0",
     "@clerk/astro": "^4.1.18",
     "@neondatabase/serverless": "^0.10.4",

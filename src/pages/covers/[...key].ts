@@ -17,7 +17,9 @@ export const GET: APIRoute = async ({ params }) => {
       return new Response('Cover not found in R2', { status: 404 });
     }
 
-    const stream = Readable.toWeb(res.Body as Readable) as ReadableStream;
+    const stream = typeof (res.Body as any)?.transformToWebStream === 'function'
+      ? (res.Body as any).transformToWebStream()
+      : Readable.toWeb(res.Body as Readable) as ReadableStream;
     return new Response(stream, {
       status: 200,
       headers: {
