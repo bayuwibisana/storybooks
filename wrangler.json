@@ -4,5 +4,13 @@
   "compatibility_date": "2024-09-23",
   "compatibility_flags": [
     "nodejs_compat"
-  ]
+  ],
+  "vars": {
+    "PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_aW5jbHVkZWQtcGxhdHlwdXMtMjAxOC5jbGVyay5hY2NvdW50cy5kZXYk",
+    "PUBLIC_SITE_URL": "https://storybooks.bayuwibisana15.workers.dev",
+    "R2_BUCKET": "kisah-krayon",
+    "PUBLIC_CLERK_SIGN_IN_URL": "/sign-in",
+    "PUBLIC_CLERK_SIGN_UP_URL": "/sign-up",
+    "PUBLIC_ENABLE_AUDIO": "true"
+  }
 }
