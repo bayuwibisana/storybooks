@@ -1,20 +1,13 @@
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
 import * as schema from './schema';
-
-function getConnectionString(): string | undefined {
-  return (
-    (typeof process !== 'undefined' ? process.env?.DATABASE_URL : undefined) ||
-    import.meta.env.DATABASE_URL ||
-    (globalThis as any)?.DATABASE_URL
-  );
-}
+import { getEnv } from '../lib/env';
 
 let _db: any = null;
 
 export function resolveDb() {
   if (_db) return _db;
-  const connectionString = getConnectionString();
+  const connectionString = getEnv('DATABASE_URL');
   if (!connectionString) {
     throw new Error(
       'DATABASE_URL is not set. Add the Neon connection string in Cloudflare Dashboard (Settings > Variables and Secrets).',

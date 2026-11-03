@@ -1,12 +1,5 @@
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
-
-function getEnv(key: string): string | undefined {
-  return (
-    (typeof process !== 'undefined' ? process.env?.[key] : undefined) ||
-    (import.meta.env as any)?.[key] ||
-    (globalThis as any)?.[key]
-  );
-}
+import { getEnv } from './env';
 
 let _r2Client: S3Client | null = null;
 
