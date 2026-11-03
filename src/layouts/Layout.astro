@@ -1,0 +1,113 @@
+---
+import { Show, SignInButton, SignUpButton, UserButton } from '@clerk/astro/components';
+import { getViewer } from '../lib/session';
+
+interface Props {
+  title?: string;
+}
+const { title = 'Kisah Krayon' } = Astro.props;
+// Resolves (and memoises) the viewer, creating the DB row on first sight.
+const viewer = await getViewer(Astro);
+---
+
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <style>
+      :root {
+        --paper: #f7f3e9;
+        --ink: #242220;
+        --muted: #66625c;
+        --line: #e8e2d5;
+        --clay: #c85a32;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      }
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.75rem 1.25rem;
+        background: rgba(247, 243, 233, 0.92);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid var(--line);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+        text-decoration: none;
+        color: inherit;
+      }
+      .brand span.mark {
+        display: grid;
+        place-items: center;
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 0.9rem;
+        background: var(--clay);
+        color: #fff;
+        transform: rotate(-3deg);
+      }
+      nav { display: flex; align-items: center; gap: 0.75rem; font-size: 0.8rem; }
+      nav a { color: var(--muted); text-decoration: none; font-weight: 700; }
+      nav a:hover { color: var(--ink); }
+      main { max-width: 72rem; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; }
+      .status {
+        font-size: 0.75rem;
+        color: var(--muted);
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 0.25rem 0.7rem;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="/">
+        <span class="mark">🖍️</span>
+        <span>Kisah Krayon</span>
+      </a>
+      <nav>
+        <a href="/">Perpustakaan</a>
+        <a href="/akun">Paket Saya</a>
+        <Show when="signed-out">
+          <a href="/sign-in">Masuk</a>
+        </Show>
+        <Show when="signed-in">
+          <UserButton />
+        </Show>
+      </nav>
+    </header>
+    {viewer.signedIn && (
+      <div style="max-width:72rem;margin:0.75rem auto 0;padding:0 1.25rem;display:flex;gap:0.5rem;flex-wrap:wrap">
+        <span class="status">
+          {viewer.hasAllAccess
+            ? 'Akses: semua cerita'
+            : viewer.storyCredits > 0
+              ? `Kredit tersisa: ${viewer.storyCredits} cerita`
+              : 'Akses: 3 cerita gratis'}
+        </span>
+      </div>
+    )}
+    <main>
+      <slot />
+    </main>
+  </body>
+</html>

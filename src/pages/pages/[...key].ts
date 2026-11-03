@@ -1,0 +1,34 @@
+import type { APIRoute } from 'astro';
+import { Readable } from 'node:stream';
+import { getR2Object } from '../../lib/r2';
+
+export const prerender = false;
+
+export const GET: APIRoute = async ({ params }) => {
+  const filename = params.key;
+  if (!filename) {
+    return new Response('Not found', { status: 404 });
+  }
+
+  const r2Key = `pages/${filename}`;
+  try {
+    const res = await getR2Object(r2Key);
+    if (!res || !res.Body) {
+      return new Response('Page image not found in R2', { status: 404 });
+    }
+
+    const stream = Readable.toWeb(res.Body as Readable) as ReadableStream;
+    return new Response(stream, {
+      status: 200,
+      headers: {
+        'Content-Type': res.ContentType || 'image/jpeg',
+        ...(res.ContentLength ? { 'Content-Length': String(res.ContentLength) } : {}),
+        'Cache-Control': 'public, max-age=31536000, immutable',
+        ...(res.ETag ? { 'ETag': res.ETag } : {}),
+      },
+    });
+  } catch (err: any) {
+    console.error(`Error streaming ${r2Key} from R2:`, err);
+    return new Response('Error fetching from R2', { status: 500 });
+  }
+};
