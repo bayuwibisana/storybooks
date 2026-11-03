@@ -1,4 +1,11 @@
 ---
+export const prerender = false;
+
+const { userId } = Astro.locals.auth();
+if (userId) {
+  return Astro.redirect('/');
+}
+
 import { SignUp } from "@clerk/astro/components";
 ---
 

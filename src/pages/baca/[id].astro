@@ -279,6 +279,17 @@ if (!isLocked) {
             style="width:100%;height:100%;object-fit:cover;display:block;transition:opacity 0.25s ease"
           />
 
+          <!-- Image Loading State Overlay -->
+          <div
+            id="image-loader"
+            style="position:absolute;inset:0;background:#efe8dc;display:none;align-items:center;justify-content:center;z-index:3;transition:opacity 0.25s ease"
+          >
+            <div style="display:flex;flex-direction:column;align-items:center;gap:0.75rem">
+              <div class="crayon-spinner"></div>
+              <span style="font-size:0.8rem;font-weight:700;color:#78716c;letter-spacing:0.02em">Menyiapkan ilustrasi krayon...</span>
+            </div>
+          </div>
+
           <!-- Page Indicator Badge -->
           <span id="page-indicator-badge" style="position:absolute;top:0.75rem;left:0.75rem;background:rgba(255,255,255,0.92);backdrop-filter:blur(4px);padding:0.25rem 0.65rem;border-radius:999px;font-size:0.7rem;font-weight:800;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,0.1)">
             Sampul Buku
@@ -735,6 +746,20 @@ if (!isLocked) {
     background: #f3f4f6;
     color: #6b7280;
   }
+
+  /* Cozy Crayon Spinner */
+  .crayon-spinner {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 3.5px solid #e8e2d5;
+    border-top-color: #c85a32;
+    border-right-color: #e5a823;
+    animation: crayon-spin 0.8s cubic-bezier(0.5, 0.1, 0.5, 0.9) infinite;
+  }
+  @keyframes crayon-spin {
+    to { transform: rotate(360deg); }
+  }
 </style>
 
 <script is:inline define:vars={{ storyData: story, pagesData: pages, isLocked, showAudio: showAudioPlayer }}>
@@ -807,6 +832,22 @@ if (!isLocked) {
     let isAudioPlaying = false;
 
     const totalSteps = pagesData.length;
+
+    let imageLoadSeq = 0;
+
+    function preloadUpcomingPages(step) {
+      // Preload next 2 upcoming pages into browser cache
+      const targets = [step + 1, step + 2];
+      targets.forEach((targetStep) => {
+        if (targetStep > 0 && targetStep <= pagesData.length) {
+          const targetPage = pagesData[targetStep - 1];
+          if (targetPage && targetPage.image) {
+            const img = new Image();
+            img.src = `/${targetPage.image}`;
+          }
+        }
+      });
+    }
 
     const readerImage = document.getElementById('reader-image');
     const readerHeading = document.getElementById('reader-heading');
@@ -956,13 +997,56 @@ if (!isLocked) {
       const pct = isCover ? 0 : Math.round((currentStep / totalSteps) * 100);
       progressIndicator.style.width = pct + '%';
 
-      // Image
+      // Image with loading indicator and cache check
       const imgPath = isCover ? `/${storyData.coverImage}` : `/${currentPage.image}`;
-      readerImage.style.opacity = '0.4';
-      setTimeout(() => {
+      const imageLoader = document.getElementById('image-loader');
+      const seq = ++imageLoadSeq;
+
+      // Predictive preload of upcoming pages
+      preloadUpcomingPages(currentStep);
+
+      const testImg = new Image();
+      testImg.src = imgPath;
+
+      if (testImg.complete && testImg.naturalWidth > 0) {
+        // Already cached in browser! Instant seamless swap
+        if (imageLoader) {
+          imageLoader.style.display = 'none';
+          imageLoader.style.opacity = '0';
+        }
         readerImage.src = imgPath;
         readerImage.style.opacity = '1';
-      }, 100);
+      } else {
+        // Not yet loaded: show cozy loader and dim previous image
+        if (imageLoader) {
+          imageLoader.style.display = 'flex';
+          imageLoader.style.opacity = '1';
+        }
+        readerImage.style.opacity = '0.3';
+
+        testImg.onload = () => {
+          if (seq !== imageLoadSeq) return; // Prevent race conditions on fast clicking
+          readerImage.src = imgPath;
+          readerImage.style.opacity = '1';
+          if (imageLoader) {
+            imageLoader.style.opacity = '0';
+            setTimeout(() => {
+              if (seq === imageLoadSeq && imageLoader) {
+                imageLoader.style.display = 'none';
+              }
+            }, 250);
+          }
+        };
+
+        testImg.onerror = () => {
+          if (seq !== imageLoadSeq) return;
+          readerImage.src = imgPath;
+          readerImage.style.opacity = '1';
+          if (imageLoader) {
+            imageLoader.style.display = 'none';
+          }
+        };
+      }
 
       // Badge & Labels
       const badgeText = isCover
