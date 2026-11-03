@@ -100,7 +100,7 @@ if (!isLocked) {
     .where(eq(storyPages.storyId, story.id))
     .orderBy(asc(storyPages.number));
 
-  hasAudio = pages.some((p) => Boolean(p.audio)) || story.storyNumber <= 2;
+  hasAudio = pages.some((p) => Boolean(p.audio)) || story.storyNumber <= 3;
   showAudioPlayer = isAudioFeatureEnabled && hasAudio;
 
   const [next] = await db
@@ -328,19 +328,24 @@ if (!isLocked) {
 
       <!-- Audio Narration Toolbar (Visible in local env or when PUBLIC_ENABLE_AUDIO=true) -->
       {showAudioPlayer && (
-        <div id="audio-toolbar" style="background:#fff;border:1px solid var(--line);border-radius:1rem;padding:0.75rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;box-shadow:0 2px 6px rgba(36,34,32,0.03)">
-          <div style="display:flex;align-items:center;gap:0.6rem">
-            <button id="audio-play-btn" style="background:#e5a823;color:#242220;border:none;border-radius:999px;padding:0.45rem 1.15rem;font-size:0.8rem;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:0.4rem;box-shadow:0 1px 3px rgba(0,0,0,0.1);transition:all 0.15s ease">
-              <span id="audio-play-icon">▶</span> <span id="audio-play-text">Putar Suara Narasi</span>
-            </button>
-            <button id="audio-stop-btn" style="background:#faf8f5;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:0.45rem 0.85rem;font-size:0.75rem;font-weight:700;cursor:pointer;transition:all 0.15s ease" title="Hentikan">
-              ⏹ Stop
-            </button>
+        <div id="audio-container" style="display:flex;flex-direction:column;gap:0.4rem">
+          <div id="audio-toolbar" style="background:#fff;border:1px solid var(--line);border-radius:1rem;padding:0.75rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;box-shadow:0 2px 6px rgba(36,34,32,0.03)">
+            <div style="display:flex;align-items:center;gap:0.6rem">
+              <button id="audio-play-btn" style="background:#e5a823;color:#242220;border:none;border-radius:999px;padding:0.45rem 1.15rem;font-size:0.8rem;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:0.4rem;box-shadow:0 1px 3px rgba(0,0,0,0.1);transition:all 0.15s ease">
+                <span id="audio-play-icon">▶</span> <span id="audio-play-text">Putar Suara Narasi</span>
+              </button>
+              <button id="audio-stop-btn" style="background:#faf8f5;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:0.45rem 0.85rem;font-size:0.75rem;font-weight:700;cursor:pointer;transition:all 0.15s ease" title="Hentikan">
+                ⏹ Stop
+              </button>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem">
+              <span id="audio-status-pill" style="font-size:0.75rem;font-weight:700;color:#78350f;background:#fff8eb;padding:0.3rem 0.75rem;border-radius:999px;border:1px solid #fed7aa;display:inline-flex;align-items:center;gap:0.35rem">
+                <span>🎙️</span> <span id="audio-status-text">Narasi Suara Siap (Despina)</span>
+              </span>
+            </div>
           </div>
-          <div style="display:flex;align-items:center;gap:0.5rem">
-            <span id="audio-status-pill" style="font-size:0.75rem;font-weight:700;color:#78350f;background:#fff8eb;padding:0.3rem 0.75rem;border-radius:999px;border:1px solid #fed7aa;display:inline-flex;align-items:center;gap:0.35rem">
-              <span>🎙️</span> <span id="audio-status-text">Narasi Suara Siap (Despina)</span>
-            </span>
+          <div id="audio-en-note" style="display:none;font-size:0.75rem;color:#78350f;background:#fff8eb;border:1px dashed #fed7aa;border-radius:0.75rem;padding:0.5rem 0.85rem;line-height:1.4">
+            ℹ️ <em>Audio bahasa Inggris belum tersedia dan akan segera ditambahkan. Kamu tetap dapat memutar narasi bahasa Indonesia atau membaca teks dalam bahasa Inggris.</em>
           </div>
         </div>
       )}
@@ -1098,6 +1103,13 @@ if (!isLocked) {
 
       // Audio narration indicator per page
       if (showAudio) {
+        const audioEnNote = document.getElementById('audio-en-note');
+        if (currentLang === 'en') {
+          if (audioEnNote) audioEnNote.style.display = 'block';
+        } else {
+          if (audioEnNote) audioEnNote.style.display = 'none';
+        }
+
         const p = isCover ? null : pagesData[currentStep - 1];
         const pageHasAudio = isCover ? true : Boolean(p && p.audio);
         if (audioPlayBtn) {
@@ -1112,9 +1124,15 @@ if (!isLocked) {
         }
         if (audioStatusText && !isAudioPlaying) {
           const pageLabel = isCover ? 'Sampul' : `Halaman ${currentStep}`;
-          audioStatusText.textContent = pageHasAudio
-            ? `Narasi Siap: ${pageLabel} (Despina)`
-            : `Narasi ${pageLabel} belum tersedia`;
+          if (currentLang === 'en') {
+            audioStatusText.textContent = pageHasAudio
+              ? `Audio ID: ${pageLabel} (EN segera hadir)`
+              : `Narasi ${pageLabel} belum tersedia`;
+          } else {
+            audioStatusText.textContent = pageHasAudio
+              ? `Narasi Siap: ${pageLabel} (Despina)`
+              : `Narasi ${pageLabel} belum tersedia`;
+          }
         }
       }
     }
