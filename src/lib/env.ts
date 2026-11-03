@@ -8,6 +8,10 @@ try {
   }
 } catch {
   // Not in Cloudflare Workers runtime (e.g. local Node.js)
+  try {
+    const dotenv = await import('dotenv');
+    dotenv.config();
+  } catch {}
 }
 
 export function getEnv(key: string): string | undefined {

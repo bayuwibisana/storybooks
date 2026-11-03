@@ -17,14 +17,14 @@ export const GET: APIRoute = async ({ params }) => {
       return new Response(`Audio not found in R2: ${r2Key}`, { status: 404 });
     }
 
-    let stream: any = res.Body;
-    if (typeof (res.Body as any)?.transformToWebStream === 'function') {
-      stream = (res.Body as any).transformToWebStream();
-    } else if (typeof Readable?.toWeb === 'function' && !(stream instanceof ReadableStream)) {
-      stream = Readable.toWeb(res.Body as Readable);
+    let body: any = res.Body;
+    if (typeof (body as any)?.transformToWebStream === 'function') {
+      body = (body as any).transformToWebStream();
+    } else if (typeof Readable?.toWeb === 'function' && !(body instanceof ReadableStream) && !(body instanceof Uint8Array) && !(body instanceof Buffer)) {
+      body = Readable.toWeb(body as Readable);
     }
 
-    return new Response(stream, {
+    return new Response(body, {
       status: 200,
       headers: {
         'Content-Type': res.ContentType || 'audio/wav',
@@ -34,7 +34,7 @@ export const GET: APIRoute = async ({ params }) => {
       },
     });
   } catch (err: any) {
-    console.error(`Error streaming ${r2Key} from R2:`, err);
+    console.error(`Error streaming ${r2Key}:`, err);
     return new Response(`Error fetching from R2: ${err?.message || String(err)}`, { status: 500 });
   }
 };
