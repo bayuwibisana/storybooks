@@ -1,0 +1,135 @@
+/* ==========================================================================
+   Kisah Krayon — Mobile-First Responsive Stylesheet
+   Tailwind Companion with Custom Theme Variables & Camera Framing
+   ========================================================================== */
+
+:root {
+  /* Theme: Oatmeal Craft Paper (Default) */
+  --bg-page: #F7F3E9;
+  --bg-card: #FFFFFF;
+  --bg-header: rgba(247, 243, 233, 0.92);
+  --text-main: #242220;
+  --text-muted: #66625C;
+  --border-color: #E8E2D5;
+  --accent: #C85A32;
+  --accent-soft: rgba(200, 90, 50, 0.1);
+  --accent-gold: #E5A823;
+}
+
+[data-theme="terracotta"] {
+  --bg-page: #EFE6DF;
+  --bg-card: #FAF5F0;
+  --bg-header: rgba(239, 230, 223, 0.92);
+  --text-main: #34221A;
+  --text-muted: #73574A;
+  --border-color: #DECBC0;
+  --accent: #BA4E26;
+  --accent-soft: rgba(186, 78, 38, 0.12);
+  --accent-gold: #DE9B18;
+}
+
+[data-theme="celestial"] {
+  --bg-page: #121520;
+  --bg-card: #1A1F30;
+  --bg-header: rgba(18, 21, 32, 0.94);
+  --text-main: #F3F4F8;
+  --text-muted: #9DA5BF;
+  --border-color: #2A314A;
+  --accent: #E87A54;
+  --accent-soft: rgba(232, 122, 84, 0.15);
+  --accent-gold: #F2C043;
+}
+
+[data-theme="pastel"] {
+  --bg-page: #EDF2F4;
+  --bg-card: #FFFFFF;
+  --bg-header: rgba(237, 242, 244, 0.92);
+  --text-main: #25323D;
+  --text-muted: #627484;
+  --border-color: #D6E0E6;
+  --accent: #457B9D;
+  --accent-soft: rgba(69, 123, 157, 0.12);
+  --accent-gold: #E9B44C;
+}
+
+body {
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Scrollbar polish */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Camera Framing Variations */
+.gallery-art-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background-color: #EFE8DC;
+}
+
+.gallery-art-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.gallery-art-frame.frame-wide img {
+  transform: scale(1);
+}
+
+.gallery-art-frame.frame-zoom-center img {
+  transform: scale(1.18);
+  transform-origin: center center;
+}
+
+.gallery-art-frame.frame-focus-left img {
+  transform: scale(1.24) translate(4%, 0);
+  transform-origin: left center;
+}
+
+.gallery-art-frame.frame-focus-right img {
+  transform: scale(1.24) translate(-4%, 0);
+  transform-origin: right center;
+}
+
+.gallery-art-frame.frame-soft-vignette::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 60px rgba(50, 30, 15, 0.35);
+  pointer-events: none;
+}
+
+/* Toast Active State */
+#app-toast.show {
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Active Theme Option */
+.theme-opt-btn.active {
+  background-color: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* Reader Mode Typography Scaler */
+.reader-container.large-type #story-text-body {
+  font-size: 1.4rem;
+  line-height: 1.8;
+}
+
+@media (min-width: 640px) {
+  .reader-container.large-type #story-text-body {
+    font-size: 1.65rem;
+    line-height: 1.85;
+  }
+}

@@ -1,0 +1,21 @@
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Web application build & dependencies (tracked in web/.git)
+web/
+
+# Media assets (stored in Cloudflare R2)
+preview/images/
+preview/audio/
+preview/images_backup_v1/

@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="id" data-theme="oatmeal">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#F7F3E9">
+    <meta name="description" content="Kisah Krayon — 36 buku cerita bergambar anak dengan 10 halaman penuh dan panduan co-reading terstandarisasi.">
+    <title>Kisah Krayon — Perpustakaan 36 Cerita Bergambar Anak</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,800;9..144,900&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              serif: ['Fraunces', 'Georgia', 'serif'],
+              sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+              hand: ['Caveat', 'cursive'],
+            },
+            colors: {
+              clay: '#C85A32',
+              ember: '#BA4E26',
+              amberGold: '#E5A823',
+              pine: '#2F5243',
+            }
+          }
+        }
+      }
+    </script>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body class="min-h-screen flex flex-col font-sans transition-colors duration-300">
+
+    <!-- Top Sticky Header -->
+    <header class="sticky top-0 z-40 bg-[var(--bg-header)] backdrop-blur-md border-b border-[var(--border-color)] px-4 py-3 sm:px-6">
+      <div class="max-w-6xl mx-auto flex items-center justify-between gap-3">
+        
+        <!-- Brand Logo -->
+        <a href="#rak" class="flex items-center gap-2.5 text-decoration-none group">
+          <div class="w-10 h-10 rounded-2xl bg-clay text-white flex items-center justify-center text-xl shadow-md transform -rotate-3 group-hover:rotate-0 transition-transform">
+            🖍️
+          </div>
+          <div>
+            <span class="block font-serif font-black text-xl text-[var(--text-main)] leading-none tracking-tight">Kisah Krayon</span>
+            <span class="block text-[10px] font-bold text-amberGold tracking-wider mt-0.5">36 BUKU CERITA BERGAMBAR</span>
+          </div>
+        </a>
+
+        <!-- Right Header Actions (Theme Picker Dropdown) -->
+        <div class="flex items-center gap-2">
+          
+          <!-- Compact Theme Dropdown Pill -->
+          <div class="relative">
+            <button id="theme-menu-btn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--border-color)] bg-[var(--bg-card)] text-xs font-bold text-[var(--text-muted)] shadow-sm hover:text-[var(--text-main)] transition-colors" aria-expanded="false" title="Pilih Nuansa Warna">
+              <span id="theme-current-icon">☀️</span>
+              <span id="theme-current-label" class="hidden sm:inline">Kertas</span>
+              <span class="text-[10px]">▾</span>
+            </button>
+
+            <!-- Theme Dropdown Menu -->
+            <div id="theme-dropdown" class="hidden absolute right-0 mt-2 w-36 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] shadow-xl p-1.5 z-50">
+              <button class="theme-opt-btn w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold rounded-xl text-left hover:bg-[var(--bg-page)] text-[var(--text-main)]" data-theme="oatmeal">
+                <span>☀️</span> <span>Kertas Alami</span>
+              </button>
+              <button class="theme-opt-btn w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold rounded-xl text-left hover:bg-[var(--bg-page)] text-[var(--text-main)]" data-theme="terracotta">
+                <span>🍂</span> <span>Tanah Liat</span>
+              </button>
+              <button class="theme-opt-btn w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold rounded-xl text-left hover:bg-[var(--bg-page)] text-[var(--text-main)]" data-theme="celestial">
+                <span>🌙</span> <span>Langit Malam</span>
+              </button>
+              <button class="theme-opt-btn w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold rounded-xl text-left hover:bg-[var(--bg-page)] text-[var(--text-main)]" data-theme="pastel">
+                <span>🌿</span> <span>Sage & Lavender</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </header>
+
+    <!-- Main Viewport -->
+    <main id="app-root" class="flex-1 w-full max-w-6xl mx-auto px-4 py-4 sm:py-6 sm:px-6">
+      <!-- Injected by JavaScript -->
+    </main>
+
+    <!-- Clean, Minimalist Footer -->
+    <footer class="mt-auto border-t border-[var(--border-color)] bg-[var(--bg-card)] py-6 px-4 text-center">
+      <div class="max-w-md mx-auto space-y-2">
+        <div class="flex items-center justify-center gap-2 font-serif font-bold text-[var(--text-main)] text-sm">
+          <span>🖍️</span>
+          <span>Kisah Krayon Studio — 36 Koleksi Cerita Bergambar</span>
+        </div>
+        <p class="text-xs text-[var(--text-muted)] leading-relaxed">
+          36 dongeng anak dengan 10 halaman penuh cerita, panduan co-reading, dan formula prompt siap pakai.
+        </p>
+        <p class="text-[11px] text-[var(--text-muted)] opacity-75">
+          &copy; 2026 Kisah Krayon Studio. Dibuat dengan cinta untuk keluarga.
+        </p>
+      </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="app-toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 translate-y-24 bg-stone-900 text-white px-5 py-2.5 rounded-full text-xs font-bold shadow-2xl transition-transform duration-300 pointer-events-none z-50"></div>
+
+    <!-- Data Bundle & Main Application Script with Cache Busting -->
+    <script src="stories_bundle.js?v=2.2"></script>
+    <script src="script.js?v=2.2"></script>
+  </body>
+</html>
