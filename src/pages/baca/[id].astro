@@ -356,35 +356,31 @@ if (!isLocked) {
             </div>
           </div>
 
-          <!-- IMMEDIATE Audio Narration Toolbar (Directly under image / above text) -->
+          <!-- IMMEDIATE Audio Narration Toolbar (Single Clean Sleek Row) -->
           {showAudioPlayer && (
             <div id="audio-container" class="audio-control-container">
               <div id="audio-toolbar" class="audio-toolbar-inner">
-                <div class="audio-main-controls">
-                  <button id="audio-play-btn" class="audio-play-btn">
-                    <span id="audio-play-icon">▶</span> <span id="audio-play-text">Putar Suara Narasi</span>
+                <div class="audio-left-controls">
+                  <button id="audio-play-btn" class="audio-play-btn" title="Putar atau jeda narasi dongeng">
+                    <span id="audio-play-icon">▶</span>
+                    <span id="audio-play-text">Putar Cerita</span>
                   </button>
-                  <button id="audio-stop-btn" class="audio-stop-btn" title="Hentikan">
-                    ⏹ Stop
+                  <button id="audio-stop-btn" class="audio-stop-btn" title="Hentikan narasi">
+                    ⏹
                   </button>
                 </div>
-                <div class="audio-secondary-controls">
-                  <button
-                    id="auto-turn-toggle-btn"
-                    type="button"
-                    class="auto-turn-toggle is-active"
-                    title="Balik halaman otomatis saat narasi audio selesai"
-                    aria-pressed="true"
-                  >
-                    <span class="toggle-icon" aria-hidden="true">🔄</span>
-                    <span id="auto-turn-toggle-text">Balik Otomatis</span>
-                  </button>
-                  <span id="audio-status-pill" class="audio-status-pill">
-                    <span>🎙️</span> <span id="audio-status-text">Narasi Suara Siap (Despina)</span>
-                  </span>
-                </div>
+                <button
+                  id="auto-turn-toggle-btn"
+                  type="button"
+                  class="auto-turn-toggle is-active"
+                  title="Balik halaman otomatis saat narasi audio selesai"
+                  aria-pressed="true"
+                >
+                  <span class="toggle-icon" aria-hidden="true">🔄</span>
+                  <span id="auto-turn-toggle-text">Balik Otomatis</span>
+                </button>
               </div>
-              <div id="audio-en-note" style="display:none;font-size:0.75rem;color:#78350f;background:#fff8eb;border:1px dashed #fed7aa;border-radius:0.75rem;padding:0.45rem 0.75rem;line-height:1.4">
+              <div id="audio-en-note" style="display:none;font-size:0.75rem;color:#78350f;background:#fff8eb;border:1px dashed #fed7aa;border-radius:0.75rem;padding:0.4rem 0.75rem;line-height:1.4">
                 ℹ️ <em>Audio bahasa Inggris belum tersedia dan akan segera ditambahkan. Kamu tetap dapat memutar narasi bahasa Indonesia atau membaca teks dalam bahasa Inggris.</em>
               </div>
             </div>
@@ -856,47 +852,41 @@ if (!isLocked) {
     display: none;
   }
 
-  /* Immediate Audio Toolbar */
+  /* Immediate Audio Toolbar (Single Sleek Row) */
   .audio-control-container {
     background: #fffcf7;
     border-bottom: 1px solid var(--line-subtle);
-    padding: 0.55rem 1rem;
+    padding: 0.45rem 0.85rem;
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
+    gap: 0.25rem;
   }
   .audio-toolbar-inner {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    flex-wrap: wrap;
     gap: 0.5rem;
+    width: 100%;
   }
-  .audio-main-controls {
+  .audio-left-controls {
     display: flex;
     align-items: center;
-    gap: 0.45rem;
-  }
-  .audio-secondary-controls {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    flex-wrap: wrap;
+    gap: 0.35rem;
   }
   .audio-play-btn {
     background: #e5a823;
     color: #242220;
     border: none;
     border-radius: 999px;
-    padding: 0.45rem 1.15rem;
+    padding: 0.4rem 1rem;
     font-size: 0.82rem;
     font-weight: 800;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    min-height: 38px;
+    gap: 0.35rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    min-height: 36px;
     transition: all 0.15s ease;
   }
   .audio-play-btn:hover {
@@ -908,47 +898,43 @@ if (!isLocked) {
     border: 1px solid var(--line);
     color: var(--muted);
     border-radius: 999px;
-    padding: 0.45rem 0.8rem;
-    font-size: 0.75rem;
-    font-weight: 700;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    font-size: 0.78rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    min-height: 38px;
     transition: all 0.15s ease;
+  }
+  .audio-stop-btn:hover {
+    border-color: #c85a32;
+    color: var(--ink);
   }
   .auto-turn-toggle {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    padding: 0.3rem 0.7rem;
+    padding: 0.3rem 0.65rem;
     border-radius: 999px;
     border: 1px solid var(--line);
     background: #faf8f5;
     color: var(--muted);
-    font-size: 0.75rem;
+    font-size: 0.74rem;
     font-weight: 800;
     font-family: inherit;
     cursor: pointer;
     transition: all 0.18s ease;
-    min-height: 32px;
+    min-height: 36px;
     box-sizing: border-box;
+    white-space: nowrap;
   }
   .auto-turn-toggle.is-active {
     background: #eef7f2;
     border-color: #bbf7d0;
     color: #2f5243;
     box-shadow: 0 1px 3px rgba(47, 82, 67, 0.08);
-  }
-  .audio-status-pill {
-    font-size: 0.73rem;
-    font-weight: 700;
-    color: #78350f;
-    background: #fff8eb;
-    padding: 0.28rem 0.7rem;
-    border-radius: 999px;
-    border: 1px solid #fed7aa;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
   }
 
   /* Narrative Box & Typography */
@@ -1192,8 +1178,8 @@ if (!isLocked) {
       text-align: left !important;
     }
     .audio-control-container {
-      margin: 0.2rem 0 !important;
-      padding: 0.3rem 0.5rem !important;
+      margin: 0.15rem 0 !important;
+      padding: 0.25rem 0.5rem !important;
       border-radius: 0.65rem !important;
       background: #faf6ed !important;
       border: 1px solid var(--line-subtle) !important;
@@ -1203,7 +1189,22 @@ if (!isLocked) {
       border: none !important;
       box-shadow: none !important;
       background: transparent !important;
-      gap: 0.3rem !important;
+      gap: 0.35rem !important;
+    }
+    .audio-play-btn {
+      padding: 0.3rem 0.75rem !important;
+      font-size: 0.75rem !important;
+      min-height: 32px !important;
+    }
+    .audio-stop-btn {
+      width: 32px !important;
+      height: 32px !important;
+      font-size: 0.75rem !important;
+    }
+    .auto-turn-toggle {
+      padding: 0.25rem 0.55rem !important;
+      font-size: 0.72rem !important;
+      min-height: 32px !important;
     }
     .reader-coreading-card {
       margin: 0.2rem 0 !important;
@@ -1802,7 +1803,7 @@ if (!isLocked) {
       isAudioPlaying = false;
       if (audioPlayBtn) {
         audioPlayIcon.textContent = '▶';
-        audioPlayText.textContent = 'Putar Suara Narasi';
+        audioPlayText.textContent = 'Putar Cerita';
         audioPlayBtn.style.background = '#e5a823';
         audioPlayBtn.style.color = '#242220';
       }
@@ -1843,7 +1844,7 @@ if (!isLocked) {
       audio.play().then(() => {
         isAudioPlaying = true;
         if (audioPlayIcon) audioPlayIcon.textContent = '⏸';
-        if (audioPlayText) audioPlayText.textContent = 'Jeda Narasi';
+        if (audioPlayText) audioPlayText.textContent = 'Jeda';
         if (audioPlayBtn) {
           audioPlayBtn.style.background = '#2f5243';
           audioPlayBtn.style.color = '#fff';
@@ -1895,7 +1896,7 @@ if (!isLocked) {
         currentAudio.pause();
         isAudioPlaying = false;
         if (audioPlayIcon) audioPlayIcon.textContent = '▶';
-        if (audioPlayText) audioPlayText.textContent = 'Lanjutkan Narasi';
+        if (audioPlayText) audioPlayText.textContent = 'Lanjut';
         if (audioTopBtn) {
           if (audioTopIcon) audioTopIcon.textContent = '▶';
           if (audioTopLabel) audioTopLabel.textContent = 'Lanjut';
@@ -1910,7 +1911,7 @@ if (!isLocked) {
         currentAudio.play().then(() => {
           isAudioPlaying = true;
           if (audioPlayIcon) audioPlayIcon.textContent = '⏸';
-          if (audioPlayText) audioPlayText.textContent = 'Jeda Narasi';
+          if (audioPlayText) audioPlayText.textContent = 'Jeda';
           if (audioTopBtn) {
             if (audioTopIcon) audioTopIcon.textContent = '⏸';
             if (audioTopLabel) audioTopLabel.textContent = 'Jeda';
