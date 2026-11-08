@@ -1,165 +1,1165 @@
 ---
 export const prerender = false;
 
-import { asc, eq } from 'drizzle-orm';
+import { and, asc, eq } from 'drizzle-orm';
 import Layout from '../layouts/Layout.astro';
 import { db } from '../db/client';
-import { stories } from '../db/schema';
+import { stories, products } from '../db/schema';
 import { readableStoryIds } from '../db/entitlements';
 import { getViewer } from '../lib/session';
-
-// Memoised on locals — the layout already paid for this.
+import { getStoryUrl } from '../lib/story-url';
 let viewer: any = { signedIn: false };
 let readable = new Set<string>();
-let rows: any[] = [];
-let lockedCount = 0;
-let payable: any[] = [];
+let freeStories: any[] = [];
+let teaserStories: any[] = [];
+let totalStoriesCount = 0;
 let loadError: string | null = null;
 
 try {
   viewer = await getViewer(Astro);
   readable = await readableStoryIds(db, viewer);
 
-  rows = await db
+  // Fetch free sampler stories (Stories #1, #2, #3)
+  freeStories = await db
     .select({
       id: stories.id,
       storyNumber: stories.storyNumber,
       title: stories.title,
       categoryLabel: stories.categoryLabel,
       ageGroup: stories.ageGroup,
+      moralTheme: stories.moralTheme,
       synopsis: stories.synopsis,
       coverImage: stories.coverImage,
-      isFree: stories.isFree,
     })
     .from(stories)
-    .where(eq(stories.isPublished, true))
-    .orderBy(asc(stories.storyNumber));
+    .where(and(eq(stories.isPublished, true), eq(stories.isFree, true)))
+    .orderBy(asc(stories.storyNumber))
+    .limit(3);
 
-  lockedCount = rows.filter((s) => !readable.has(s.id)).length;
-  payable = rows.filter((s) => !s.isFree);
+  // Fetch teaser stories (#4 to #9)
+  teaserStories = await db
+    .select({
+      id: stories.id,
+      storyNumber: stories.storyNumber,
+      title: stories.title,
+      categoryLabel: stories.categoryLabel,
+      ageGroup: stories.ageGroup,
+      coverImage: stories.coverImage,
+    })
+    .from(stories)
+    .where(and(eq(stories.isPublished, true), eq(stories.isFree, false)))
+    .orderBy(asc(stories.storyNumber))
+    .limit(6);
+
+  const all = await db
+    .select({ id: stories.id })
+    .from(stories)
+    .where(eq(stories.isPublished, true));
+  totalStoriesCount = all.length;
 } catch (err: any) {
-  console.error('[index.astro] Data load error:', err);
+  console.error('[index.astro] Error loading homepage data:', err);
   loadError = err?.message || String(err);
 }
 ---
 
-<Layout title="Kisah Krayon — Perpustakaan">
+<Layout title="Kisah Krayon — Buku Cerita Bergambar Pengantar Tidur Anak">
   {loadError && (
-    <div style="background:#fff3cd;border:1px solid #ffeeba;color:#856404;padding:1.25rem 1.5rem;border-radius:1rem;margin-bottom:1.5rem">
-      <strong style="display:block;margin-bottom:0.4rem;font-size:1.05rem">⚠️ Perhatian: Koneksi Database Sedang Diinisialisasi</strong>
-      <p style="margin:0 0 0.5rem;font-size:0.9rem">Aplikasi web belum dapat terhubung ke database Neon. Pesan error:</p>
-      <code style="display:block;background:#fff;padding:0.75rem 1rem;border-radius:0.5rem;border:1px solid #e2e8f0;font-size:0.85rem;word-break:break-all">{loadError}</code>
-      <p style="margin:0.75rem 0 0;font-size:0.85rem;color:#666">Pastikan <code>DATABASE_URL</code> sudah ditambahkan pada Cloudflare Dashboard > Settings > Variables and Secrets.</p>
+    <div class="db-error-alert" role="alert">
+      <strong class="db-error-title">Perhatian: Koneksi Database Sedang Diinisialisasi</strong>
+      <code class="db-error-code">{loadError}</code>
     </div>
   )}
 
-  <h1 style="font-size:1.75rem;margin:0 0 0.25rem;letter-spacing:-0.02em">
-    36 buku cerita bergambar
-  </h1>
-  <p style="color:#66625c;margin:0 0 1.25rem;font-size:0.9rem">
-    {viewer.signedIn
-      ? `Kamu punya akses ke ${rows.length - lockedCount} dari ${rows.length} cerita.`
-      : `3 cerita gratis untuk dibaca. ${lockedCount} cerita terkunci.`}
-  </p>
+  <!-- HERO SECTION: Emotional Hook & Interactive Bedtime Preview -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="badge-dot" aria-hidden="true"></span>
+        <span>100% Bebas Iklan · Aman untuk Si Kecil</span>
+      </div>
 
-  {!viewer.signedIn ? (
-    <div style="background:#fff;border:1px solid #e8e2d5;border-radius:1rem;padding:1rem 1.25rem;margin-bottom:1.5rem;display:flex;gap:1rem;align-items:center;justify-content:space-between;flex-wrap:wrap">
-      <div>
-        <strong style="display:block;font-size:0.95rem">Ingin buka semua {payable.length} cerita?</strong>
-        <span style="font-size:0.8rem;color:#66625c">Mulai dari Rp 9.000 — sekali bayar, tanpa langganan.</span>
-      </div>
-      <a href="/sign-up" style="background:#c85a32;color:#fff;text-decoration:none;font-weight:800;font-size:0.85rem;padding:0.6rem 1.1rem;border-radius:999px">
-        Buat akun & buka
-      </a>
-    </div>
-  ) : (viewer.storyCredits ?? 0) > 0 ? (
-    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:1rem;padding:1rem 1.25rem;margin-bottom:1.5rem;display:flex;gap:1rem;align-items:center;justify-content:space-between;flex-wrap:wrap">
-      <div>
-        <strong style="display:block;font-size:0.95rem;color:#14532d">Kamu punya {viewer.storyCredits} kredit cerita!</strong>
-        <span style="font-size:0.8rem;color:#166534">Pilih cerita terkunci mana pun di bawah untuk langsung dibuka secara permanen.</span>
-      </div>
-      <a href="/akun" style="background:#2f5243;color:#fff;text-decoration:none;font-weight:800;font-size:0.85rem;padding:0.6rem 1.1rem;border-radius:999px">
-        Kelola Kredit
-      </a>
-    </div>
-  ) : lockedCount > 0 ? (
-    <div style="background:#fff8eb;border:1px solid #fed7aa;border-radius:1rem;padding:1rem 1.25rem;margin-bottom:1.5rem;display:flex;gap:1rem;align-items:center;justify-content:space-between;flex-wrap:wrap">
-      <div>
-        <strong style="display:block;font-size:0.95rem;color:#7c2d12">Buka {lockedCount} cerita lainnya untuk si kecil</strong>
-        <span style="font-size:0.8rem;color:#9a3412">Paket cerita mulai Rp 9.000 untuk 10 cerita atau Rp 29.000 untuk paket lengkap (sekali bayar tanpa langganan).</span>
-      </div>
-      <a href="/akun" style="background:#c85a32;color:#fff;text-decoration:none;font-weight:800;font-size:0.85rem;padding:0.6rem 1.1rem;border-radius:999px">
-        Lihat Pilihan Paket
-      </a>
-    </div>
-  ) : null}
+      <h1 class="hero-headline">
+        Tidur Malam yang Tenang,<br />
+        <span class="text-clay">Tanpa Gadget Bising.</span>
+      </h1>
 
-  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(15rem,1fr));gap:1rem">
-    {rows.map((s) => {
-      const open = readable.has(s.id);
-      const targetUrl = `/baca/${s.id}`;
-      return (
-        <article style="background:#fff;border:1px solid #e8e2d5;border-radius:1rem;overflow:hidden;display:flex;flex-direction:column">
-          <a href={targetUrl} style="text-decoration:none;display:block;position:relative;aspect-ratio:4/3;background:#efe8dc;overflow:hidden">
-            {s.coverImage ? (
-              <img
-                src={`/${s.coverImage}`}
-                alt={s.title}
-                loading="lazy"
-                style="width:100%;height:100%;object-fit:cover;display:block"
-              />
-            ) : (
-              <div style="width:100%;height:100%;display:grid;place-items:center;background:linear-gradient(135deg,#efe8dc,#e0d3bd)">
-                <span style="font-size:2.5rem;opacity:0.35">🖍️</span>
-              </div>
-            )}
-            <span style="position:absolute;top:0.6rem;left:0.6rem;background:rgba(255,255,255,0.92);backdrop-filter:blur(4px);border-radius:999px;padding:0.15rem 0.55rem;font-size:0.65rem;font-weight:800;color:#242220;box-shadow:0 1px 3px rgba(0,0,0,0.1)">
-              #{s.storyNumber}
-            </span>
-            <span
-              style={`position:absolute;top:0.6rem;right:0.6rem;border-radius:999px;padding:0.15rem 0.55rem;font-size:0.65rem;font-weight:800;background:${open ? '#2f5243' : 'rgba(36,34,32,0.85)'};color:#fff;backdrop-filter:blur(4px);box-shadow:0 1px 3px rgba(0,0,0,0.1)`}
-            >
-              {s.isFree ? 'GRATIS' : open ? 'TERBUKA' : '🔒 TERKUNCI'}
-            </span>
-            {!open && (
-              <div style="position:absolute;inset:0;background:rgba(36,34,32,0.5);backdrop-filter:blur(2px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.4rem;color:#fff">
-                <span style="font-size:1.6rem">🔒</span>
-                <span style="font-size:0.75rem;font-weight:800;letter-spacing:0.02em">Konten Terkunci</span>
-              </div>
-            )}
+      <p class="hero-lead">
+        Koleksi buku cerita anak (usia 2–6 tahun) dengan ilustrasi krayon lembut dan panduan obrolan hati, membantu anak terlelap dengan tenang dan penuh kasih.
+      </p>
+
+      <div class="hero-cta-group">
+        <a href="#gratis" class="btn btn-primary btn-lg">
+          <span>Baca 3 Cerita Gratis</span>
+          <span class="btn-arrow" aria-hidden="true">→</span>
+        </a>
+        <a href="/perpustakaan" class="btn btn-outline btn-lg">
+          Jelajahi Perpustakaan ({totalStoriesCount} Cerita)
+        </a>
+      </div>
+
+      <div class="hero-trust-bar">
+        <div class="trust-item">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="trust-icon" aria-hidden="true">
+            <path d="M20 6L9 17l-5-5"></path>
+          </svg>
+          <span>Sekali bayar seumur hidup</span>
+        </div>
+        <div class="trust-item">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="trust-icon" aria-hidden="true">
+            <path d="M20 6L9 17l-5-5"></path>
+          </svg>
+          <span>Bukan langganan bulanan</span>
+        </div>
+        <div class="trust-item">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="trust-icon" aria-hidden="true">
+            <path d="M20 6L9 17l-5-5"></path>
+          </svg>
+          <span>Dwibahasa (ID / EN)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hero Visual Card: Floating Book Showcase -->
+    <div class="hero-visual">
+      <div class="book-card-mockup">
+        <div class="mockup-header">
+          <span class="mockup-pill">Cerita Pengantar Tidur</span>
+          <span class="mockup-time">Membaca 5 Menit</span>
+        </div>
+        <div class="mockup-cover">
+          <img
+            src="/covers/story2_cover.jpg"
+            alt="Gadis yang Merajut Selimut Bulan"
+            width="440"
+            height="330"
+            loading="eager"
+            class="mockup-img"
+          />
+          <div class="mockup-badge">
+            <span class="chip-num">#2</span>
+            <span>Gratis Dibaca</span>
+          </div>
+        </div>
+        <div class="mockup-body">
+          <h3 class="mockup-title">Gadis yang Merajut Selimut Bulan</h3>
+          <p class="mockup-quote">
+            "Maya melihat bulan sabit menggigil kedinginan di langit malam, lalu merajut selimut perca wol yang lembut dan hangat..."
+          </p>
+          <a href="/baca/gadis-yang-merajut-selimut-bulan" class="btn btn-forest btn-block">
+            <span>Buka Cerita Ini Sekarang</span>
+            <span class="btn-arrow" aria-hidden="true">→</span>
           </a>
-          <div style="padding:0.85rem;display:flex;flex-direction:column;gap:0.35rem;flex:1">
-            <a href={targetUrl} style="text-decoration:none;color:inherit">
-              <strong style="font-size:0.9rem;line-height:1.3;display:block">{s.title}</strong>
-            </a>
-            <span style="font-size:0.7rem;color:#66625c;font-weight:700">
-              {s.categoryLabel ?? ''} · {s.ageGroup ?? ''}
-            </span>
-            <p style="font-size:0.78rem;color:#66625c;line-height:1.5;margin:0.25rem 0 0.6rem">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 PILAR BEDTIME VALUES: Mengapa Kisah Krayon? -->
+  <section class="values-section" aria-label="Keunggulan Kisah Krayon">
+    <div class="section-intro">
+      <h2 class="section-title">Dirancang Khusus untuk Momen Sebelum Tidur</h2>
+      <p class="section-desc">
+        Bukan video animasi bising dengan warna mencolok yang membuat otak anak terstimulasi berlebih sebelum tidur.
+      </p>
+    </div>
+
+    <div class="values-grid">
+      <article class="value-card">
+        <div class="value-icon-wrap icon-clay">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+          </svg>
+        </div>
+        <h3 class="value-heading">Layar Tenang & Lembut</h3>
+        <p class="value-text">
+          Goresan krayon lilin dan tekstur cat air asli tanpa warna neon menyilaukan. Memberikan ketenangan visual agar mata anak siap beristirahat.
+        </p>
+      </article>
+
+      <article class="value-card">
+        <div class="value-icon-wrap icon-forest">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+        </div>
+        <h3 class="value-heading">Panduan Obrolan Hati</h3>
+        <p class="value-text">
+          Setiap cerita diakhiri pertanyaan pemandu interaktif (<em>co-reading prompts</em>) untuk mengajak si kecil bercerita tentang perasaannya sebelum tidur.
+        </p>
+      </article>
+
+      <article class="value-card">
+        <div class="value-icon-wrap icon-amber">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+        </div>
+        <h3 class="value-heading">Dwibahasa Sejak Dini</h3>
+        <p class="value-text">
+          Narasi utama dalam Bahasa Indonesia yang santun dan kaya kosakata emosi, bersanding dengan kalimat Bahasa Inggris sederhana.
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <!-- SPOTLIGHT SECTION: 3 Cerita Gratis Siap Baca -->
+  <section id="gratis" class="spotlight-section" aria-label="3 Cerita Gratis Pilihan">
+    <div class="spotlight-header">
+      <div>
+        <span class="spotlight-badge">Siap Dibaca Malam Ini</span>
+        <h2 class="section-title">3 Cerita Gratis Pilihan</h2>
+        <p class="section-desc">
+          Bisa langsung dibaca bersama si kecil sekarang juga. Tanpa perlu mendaftar dan tanpa kartu kredit.
+        </p>
+      </div>
+      <a href="/perpustakaan" class="btn btn-outline">
+        Buka Perpustakaan Lengkap →
+      </a>
+    </div>
+
+    <div class="spotlight-grid">
+      {freeStories.map((s) => (
+        <article class="spotlight-card">
+          <div class="spotlight-cover-wrap">
+            <img
+              src={`/${s.coverImage}`}
+              alt={s.title}
+              width="400"
+              height="300"
+              loading="lazy"
+              class="spotlight-cover-img"
+            />
+            <span class="spotlight-num">#{s.storyNumber}</span>
+            <span class="spotlight-tag">100% Gratis</span>
+          </div>
+
+          <div class="spotlight-card-body">
+            <div class="spotlight-meta">
+              <span class="spotlight-cat">{s.categoryLabel}</span>
+              <span class="spotlight-sep">·</span>
+              <span>{s.ageGroup}</span>
+            </div>
+
+            <h3 class="spotlight-card-title">
+              <a href={getStoryUrl(s)}>{s.title}</a>
+            </h3>
+
+            <p class="spotlight-card-desc">
               {s.synopsis}
             </p>
-            <div style="margin-top:auto">
-              {open ? (
-                <a href={targetUrl} style="display:block;text-align:center;background:#2f5243;color:#fff;text-decoration:none;font-weight:800;font-size:0.8rem;padding:0.5rem;border-radius:0.6rem;transition:background 0.15s ease">
-                  Baca sekarang
-                </a>
-              ) : !viewer.signedIn ? (
-                <a href="/sign-in" style="display:block;text-align:center;background:#f0ece2;color:#242220;text-decoration:none;font-weight:800;font-size:0.8rem;padding:0.5rem;border-radius:0.6rem;transition:background 0.15s ease">
-                  Masuk untuk Buka
-                </a>
-              ) : (viewer.storyCredits ?? 0) > 0 ? (
-                <a href={targetUrl} style="display:block;text-align:center;background:#e5a823;color:#242220;text-decoration:none;font-weight:800;font-size:0.8rem;padding:0.5rem;border-radius:0.6rem;transition:background 0.15s ease">
-                  Buka (1 Kredit)
-                </a>
-              ) : (
-                <a href="/akun" style="display:block;text-align:center;background:#fbeee8;color:#c85a32;border:1px solid #fed7aa;text-decoration:none;font-weight:800;font-size:0.8rem;padding:0.45rem;border-radius:0.6rem;transition:background 0.15s ease">
-                  Pilih Paket Cerita
-                </a>
-              )}
+
+            <div class="spotlight-card-footer">
+              <a href={getStoryUrl(s)} class="btn btn-forest btn-block">
+                <span>Baca Sekarang Gratis</span>
+                <span class="btn-arrow" aria-hidden="true">→</span>
+              </a>
             </div>
           </div>
         </article>
-      );
-    })}
-  </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- PRICING & ANTI-SUBSCRIPTION CLARITY -->
+  <section id="paket" class="pricing-section" aria-label="Pilihan Paket Cerita">
+    <div class="section-intro">
+      <div class="pricing-badge">Sekali Bayar Seumur Hidup • Bebas Langganan</div>
+      <h2 class="section-title">Investasi Kecil untuk Momen Hangat Setiap Malam</h2>
+      <p class="section-desc">
+        Satu buku fisik anak di toko buku rata-rata <strong>Rp 75.000–Rp 90.000</strong> (hanya 1 cerita). Di Kisah Krayon, dapatkan dongeng pengantar tidur berkualitas mulai <strong>Rp 15.000</strong> sekali bayar, atau akses semua cerita dan pembaruan cerita baru setiap minggu selamanya seharga <strong>Rp 79.000</strong>.
+      </p>
+    </div>
+
+    <div class="pricing-grid">
+      <!-- Paket Kecil -->
+      <div class="pricing-card">
+        <h3 class="plan-name">Paket Kecil</h3>
+        <p class="plan-desc">Coba rutinitas dongeng malam dengan 10 cerita pilihan bebas.</p>
+        <div class="plan-price-wrap">
+          <span class="plan-currency">Rp</span>
+          <span class="plan-price">15.000</span>
+          <span class="plan-cycle">/ sekali bayar</span>
+        </div>
+        <ul class="plan-features">
+          <li>✓ <strong>Bebas Pilih 10 Cerita Favorit</strong></li>
+          <li>✓ Kredit permanen tanpa kedaluwarsa</li>
+          <li>✓ Teks dwibahasa (ID / EN) & panduan hati</li>
+          <li>✓ Bebas iklan & bebas pelacak</li>
+          <li>✓ Bisa upgrade ke Paket Sahabat kapan saja</li>
+        </ul>
+        <a href="/akun" class="btn btn-outline btn-block">Pilih Paket Kecil</a>
+      </div>
+
+      <!-- Paket Lengkap (Koleksi Saat Ini) -->
+      <div class="pricing-card">
+        <h3 class="plan-name">Paket Lengkap</h3>
+        <p class="plan-desc">Akses seluruh 40 buku cerita yang sudah rilis saat ini.</p>
+        <div class="plan-price-wrap">
+          <span class="plan-currency">Rp</span>
+          <span class="plan-price">49.000</span>
+          <span class="plan-cycle">/ sekali bayar</span>
+        </div>
+        <ul class="plan-features">
+          <li>✓ <strong>Akses 40 Cerita Bergambar Saat Ini</strong></li>
+          <li>✓ Terbuka instan tanpa batas waktu</li>
+          <li>✓ Audio narasi & panduan diskusi hati</li>
+          <li>✓ Bebas iklan & tanpa biaya bulanan</li>
+          <li style="color:var(--muted);font-size:0.8rem"><em>• Cerita baru mingguan tidak termasuk (hanya di Paket Sahabat)</em></li>
+        </ul>
+        <a href="/akun" class="btn btn-outline btn-block">Pilih Paket Lengkap</a>
+      </div>
+
+      <!-- Paket Sahabat (Featured / Recommended) -->
+      <div class="pricing-card featured">
+        <div class="featured-ribbon">★ Rekomendasi Keluarga</div>
+        <h3 class="plan-name">Paket Sahabat</h3>
+        <p class="plan-desc">Akses seluruh koleksi cerita saat ini + pembaruan cerita baru tiap minggu selamanya.</p>
+        <div class="plan-price-wrap" style="flex-direction:column;gap:0.35rem">
+          <div style="display:flex;align-items:baseline;gap:0.25rem">
+            <span class="plan-currency">Rp</span>
+            <span class="plan-price" style="color:var(--clay)">79.000</span>
+            <span class="plan-cycle">/ sekali bayar</span>
+          </div>
+          <span class="plan-unit-cost">Cerita baru bertambah tiap minggu • Hemat seumur hidup</span>
+        </div>
+        <ul class="plan-features">
+          <li>✓ <strong>Semua Cerita Saat Ini + Cerita Baru Tiap Minggu Selamanya</strong></li>
+          <li>✓ <strong>Audio Narasi Lembut Pengantar Tidur</strong> lengkap suara wanita</li>
+          <li>✓ <strong>100% Bebas Iklan & Tanpa Gangguan</strong> — Ruang membaca aman untuk anak</li>
+          <li>✓ <strong>Sekali Bayar Seumur Hidup</strong> — Bebas langganan selamanya</li>
+          <li>✓ <strong>Akses Pertama & Prioritas</strong> setiap kali cerita baru terbit</li>
+        </ul>
+        <a href="/akun" class="btn btn-clay btn-block" style="font-weight:800;box-shadow:0 4px 12px rgba(200,90,50,0.3)">
+          Ambil Paket Sahabat (Akses Selamanya) →
+        </a>
+      </div>
+    </div>
+
+    <div class="pricing-guarantee">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+      </svg>
+      <span>Pembayaran aman via QRIS (GoPay, OVO, ShopeePay, BCA, Mandiri). Tanpa potong saldo otomatis bulanan.</span>
+    </div>
+  </section>
+
+  <!-- TEASER GRID: Intip Koleksi Cerita Lainnya -->
+  <section class="teaser-section" aria-label="Cuplikan Koleksi Cerita">
+    <div class="teaser-header">
+      <div>
+        <h2 class="section-title">Kisah Penuh Petualangan Lainnya</h2>
+        <p class="section-desc">Mulai dari pulau mercusuar, jembatan bambu, hingga pesta teh di atas awan.</p>
+      </div>
+      <a href="/perpustakaan" class="btn btn-outline">
+        Lihat Seluruh {totalStoriesCount} Cerita →
+      </a>
+    </div>
+
+    <div class="teaser-grid">
+      {teaserStories.map((s) => (
+        <a href="/perpustakaan" class="teaser-card">
+          <div class="teaser-img-wrap">
+            <img
+              src={`/${s.coverImage}`}
+              alt={s.title}
+              width="300"
+              height="225"
+              loading="lazy"
+              class="teaser-img"
+            />
+            <span class="teaser-num">#{s.storyNumber}</span>
+          </div>
+          <div class="teaser-card-info">
+            <span class="teaser-cat">{s.categoryLabel}</span>
+            <h4 class="teaser-title">{s.title}</h4>
+          </div>
+        </a>
+      ))}
+    </div>
+
+    <!-- Big Catalog Banner Link -->
+    <div class="catalog-cta-banner">
+      <div class="catalog-cta-text">
+        <h3>Cari Cerita Berdasarkan Kategori Favorit Si Kecil</h3>
+        <p>Gunakan filter Pengantar Tidur, Empati, Sains, dan Persahabatan di Halaman Perpustakaan.</p>
+      </div>
+      <a href="/perpustakaan" class="btn btn-primary btn-lg">
+        Buka Perpustakaan Lengkap ({totalStoriesCount} Buku) →
+      </a>
+    </div>
+  </section>
+
+  <!-- FAQ ORANG TUA: Menjawab Pertanyaan Umum -->
+  <section class="faq-section" aria-label="Pertanyaan Umum">
+    <div class="section-intro">
+      <h2 class="section-title">Pertanyaan yang Sering Diajukan Orang Tua</h2>
+      <p class="section-desc">Segala hal yang perlu Ayah & Ibu ketahui tentang Kisah Krayon.</p>
+    </div>
+
+    <div class="faq-list">
+      <div class="faq-item">
+        <h3 class="faq-q">Apakah anak saya yang belum bisa membaca bisa menikmati buku ini?</h3>
+        <p class="faq-a">
+          Tentu saja! Kisah Krayon dirancang khusus untuk dibacakan oleh orang tua (<em>read-aloud</em>). Kalimatnya beritme tenang dan ilustrasi visualnya sangat kaya sehingga anak dapat menikmati gambar sambil mendengarkan suara Ayah dan Ibu.
+        </p>
+      </div>
+
+      <div class="faq-item">
+        <h3 class="faq-q">Apakah saya harus mengunduh aplikasi dari App Store atau Play Store?</h3>
+        <p class="faq-a">
+          Tidak perlu. Kisah Krayon dapat langsung dibuka melalui peramban (browser) di smartphone, iPad/tablet, maupun laptop. Hemat memori perangkat dan dapat dibaca kapan saja.
+        </p>
+      </div>
+
+      <div class="faq-item">
+        <h3 class="faq-q">Apakah ada biaya bulanan yang otomatis ditarik dari rekening saya?</h3>
+        <p class="faq-a">
+          Sama sekali tidak ada. Semua pembelian di Kisah Krayon bersifat <strong>sekali bayar seumur hidup</strong>. Anda tidak akan pernah dikenakan tagihan langganan otomatis.
+        </p>
+      </div>
+
+      <div class="faq-item">
+        <h3 class="faq-q">Bagaimana cara membuka cerita yang terkunci?</h3>
+        <p class="faq-a">
+          Setelah memilih paket cerita, Anda dapat melakukan pembayaran instan melalui QRIS atau transfer bank. Akses cerita akan langsung terbuka permanen di akun Anda tanpa menunggu lama.
+        </p>
+      </div>
+    </div>
+  </section>
 </Layout>
+
+<style>
+  /* Base Layout Typography & Section Utilities */
+  .section-intro {
+    text-align: center;
+    max-width: 42rem;
+    margin: 0 auto 2.5rem;
+  }
+  .section-title {
+    font-size: 1.85rem;
+    font-weight: 900;
+    color: var(--ink);
+    margin: 0 0 0.6rem;
+    letter-spacing: -0.025em;
+    line-height: 1.25;
+  }
+  .section-desc {
+    margin: 0;
+    font-size: 0.98rem;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+  .text-clay {
+    color: var(--clay);
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 800;
+    text-decoration: none;
+    padding: 0.65rem 1.25rem;
+    border-radius: var(--radius-full);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
+    box-sizing: border-box;
+    white-space: nowrap;
+  }
+  .btn-lg {
+    padding: 0.85rem 1.6rem;
+    font-size: 0.95rem;
+    min-height: 48px;
+  }
+  .btn-block {
+    width: 100%;
+  }
+  .btn-primary {
+    background: var(--clay);
+    color: #ffffff;
+    border: none;
+    box-shadow: 0 2px 8px rgba(200, 90, 50, 0.25);
+  }
+  .btn-primary:hover {
+    background: var(--clay-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(200, 90, 50, 0.35);
+  }
+  .btn-clay {
+    background: var(--clay);
+    color: #ffffff;
+    border: none;
+  }
+  .btn-clay:hover {
+    background: var(--clay-hover);
+    transform: translateY(-1px);
+  }
+  .btn-forest {
+    background: var(--forest);
+    color: #ffffff;
+    border: none;
+  }
+  .btn-forest:hover {
+    background: var(--forest-hover);
+    transform: translateY(-1px);
+  }
+  .btn-outline {
+    background: var(--card-bg);
+    color: var(--ink);
+    border: 1px solid var(--line);
+  }
+  .btn-outline:hover {
+    border-color: var(--clay);
+    color: var(--clay);
+    background: var(--paper-subtle);
+  }
+  .btn-arrow {
+    transition: transform 0.18s ease;
+  }
+  .btn:hover .btn-arrow {
+    transform: translateX(3px);
+  }
+
+  /* HERO SECTION */
+  .hero-section {
+    padding: 1.5rem 0 3.5rem;
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 2.5rem;
+    align-items: center;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: var(--forest-light);
+    color: var(--forest);
+    font-size: 0.78rem;
+    font-weight: 800;
+    padding: 0.35rem 0.85rem;
+    border-radius: var(--radius-full);
+    border: 1px solid #bbf7d0;
+    margin-bottom: 1.25rem;
+  }
+  .badge-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--forest);
+    border-radius: 50%;
+  }
+  .hero-headline {
+    font-size: 2.65rem;
+    font-weight: 900;
+    color: var(--ink);
+    letter-spacing: -0.03em;
+    line-height: 1.18;
+    margin: 0 0 1rem;
+  }
+  .hero-lead {
+    font-size: 1.05rem;
+    line-height: 1.65;
+    color: var(--muted);
+    margin: 0 0 1.75rem;
+  }
+  .hero-cta-group {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+  }
+  .hero-trust-bar {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    font-size: 0.82rem;
+    color: var(--muted);
+    font-weight: 700;
+  }
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .trust-icon {
+    color: var(--forest);
+  }
+
+  /* Hero Visual Card Mockup */
+  .hero-visual {
+    display: flex;
+    justify-content: center;
+  }
+  .book-card-mockup {
+    background: var(--card-bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 1.15rem;
+    box-shadow: 0 12px 36px rgba(36, 34, 32, 0.08);
+    max-width: 25rem;
+    width: 100%;
+    position: relative;
+    transform: rotate(1deg);
+    transition: transform 0.25s ease;
+  }
+  .book-card-mockup:hover {
+    transform: rotate(0deg) translateY(-3px);
+  }
+  .mockup-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+  }
+  .mockup-pill {
+    color: var(--clay);
+  }
+  .mockup-cover {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: #ede6d8;
+  }
+  .mockup-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .mockup-badge {
+    position: absolute;
+    bottom: 0.65rem;
+    left: 0.65rem;
+    background: rgba(255, 255, 255, 0.94);
+    border-radius: var(--radius-full);
+    padding: 0.2rem 0.65rem;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  }
+  .chip-num {
+    background: var(--clay);
+    color: #fff;
+    padding: 0.1rem 0.35rem;
+    border-radius: 999px;
+    font-size: 0.65rem;
+  }
+  .mockup-body {
+    padding-top: 0.9rem;
+  }
+  .mockup-title {
+    font-size: 1.05rem;
+    font-weight: 900;
+    margin: 0 0 0.35rem;
+    color: var(--ink);
+    letter-spacing: -0.015em;
+  }
+  .mockup-quote {
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: var(--muted);
+    font-style: italic;
+    margin: 0 0 1rem;
+  }
+
+  /* VALUES SECTION */
+  .values-section {
+    padding: 3rem 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .values-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+  .value-card {
+    background: var(--card-bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 1.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .value-icon-wrap {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--radius-md);
+    display: grid;
+    place-items: center;
+    margin-bottom: 0.35rem;
+  }
+  .icon-clay {
+    background: var(--clay-light);
+    color: var(--clay);
+  }
+  .icon-forest {
+    background: var(--forest-light);
+    color: var(--forest);
+  }
+  .icon-amber {
+    background: var(--amber-light);
+    color: var(--amber);
+  }
+  .value-heading {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--ink);
+    margin: 0;
+    letter-spacing: -0.015em;
+  }
+  .value-text {
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--muted);
+    margin: 0;
+  }
+
+  /* SPOTLIGHT SECTION */
+  .spotlight-section {
+    padding: 4rem 0 3rem;
+  }
+  .spotlight-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+  .spotlight-badge {
+    display: inline-block;
+    color: var(--forest);
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.35rem;
+  }
+  .spotlight-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+  .spotlight-card {
+    background: var(--card-bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-card);
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
+  }
+  .spotlight-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+  }
+  .spotlight-cover-wrap {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    background: #ede6d8;
+  }
+  .spotlight-cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .spotlight-num {
+    position: absolute;
+    top: 0.7rem;
+    left: 0.7rem;
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--ink);
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius-full);
+  }
+  .spotlight-tag {
+    position: absolute;
+    top: 0.7rem;
+    right: 0.7rem;
+    background: var(--forest);
+    color: #ffffff;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius-full);
+  }
+  .spotlight-card-body {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+  }
+  .spotlight-meta {
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: var(--muted);
+  }
+  .spotlight-cat {
+    color: var(--clay);
+  }
+  .spotlight-sep {
+    color: var(--muted-light);
+    margin: 0 0.25rem;
+  }
+  .spotlight-card-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    margin: 0.1rem 0;
+    line-height: 1.35;
+  }
+  .spotlight-card-title a {
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .spotlight-card-title a:hover {
+    color: var(--clay);
+  }
+  .spotlight-card-desc {
+    font-size: 0.86rem;
+    line-height: 1.55;
+    color: var(--muted);
+    margin: 0 0 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .spotlight-card-footer {
+    margin-top: auto;
+  }
+
+  /* PRICING SECTION */
+  .pricing-section {
+    padding: 4rem 0 3.5rem;
+    background: var(--paper-subtle);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    margin-left: -1rem;
+    margin-right: -1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .pricing-badge {
+    display: inline-block;
+    background: var(--clay-light);
+    color: var(--clay);
+    font-size: 0.78rem;
+    font-weight: 800;
+    padding: 0.3rem 0.8rem;
+    border-radius: var(--radius-full);
+    margin-bottom: 0.6rem;
+  }
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    max-width: 64rem;
+    margin: 0 auto;
+    align-items: stretch;
+  }
+  .pricing-card {
+    background: var(--card-bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 2rem 1.6rem;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+  }
+  .pricing-card.featured {
+    border-color: var(--clay);
+    background: #fffdfa;
+    box-shadow: 0 10px 28px rgba(200, 90, 50, 0.15);
+    transform: translateY(-4px);
+  }
+  .plan-unit-cost {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--forest);
+    background: #eef7f2;
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--radius-sm);
+    width: fit-content;
+  }
+  .featured-ribbon {
+    position: absolute;
+    top: -0.75rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--clay);
+    color: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 0.25rem 0.85rem;
+    border-radius: var(--radius-full);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .plan-name {
+    font-size: 1.25rem;
+    font-weight: 900;
+    margin: 0 0 0.35rem;
+    color: var(--ink);
+  }
+  .plan-desc {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin: 0 0 1.25rem;
+    min-height: 2.4rem;
+    line-height: 1.45;
+  }
+  .plan-price-wrap {
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--line-subtle);
+  }
+  .plan-currency {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--muted);
+  }
+  .plan-price {
+    font-size: 2.15rem;
+    font-weight: 900;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+  }
+  .plan-cycle {
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+  .plan-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    font-size: 0.85rem;
+    color: var(--ink);
+    flex: 1;
+  }
+  .plan-features li {
+    line-height: 1.4;
+  }
+  .pricing-guarantee {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.84rem;
+    color: var(--muted);
+    margin-top: 2rem;
+    font-weight: 600;
+    text-align: center;
+  }
+  .pricing-guarantee svg {
+    color: var(--forest);
+    flex-shrink: 0;
+  }
+
+  /* TEASER SECTION */
+  .teaser-section {
+    padding: 4rem 0 3rem;
+  }
+  .teaser-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+  .teaser-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .teaser-card {
+    background: var(--card-bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .teaser-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-sm);
+  }
+  .teaser-img-wrap {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    background: #ede6d8;
+  }
+  .teaser-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .teaser-num {
+    position: absolute;
+    top: 0.4rem;
+    left: 0.4rem;
+    background: rgba(255, 255, 255, 0.95);
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 0.1rem 0.4rem;
+    border-radius: var(--radius-full);
+  }
+  .teaser-card-info {
+    padding: 0.65rem;
+  }
+  .teaser-cat {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--clay);
+    margin-bottom: 0.15rem;
+  }
+  .teaser-title {
+    font-size: 0.82rem;
+    font-weight: 800;
+    margin: 0;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Catalog CTA Banner */
+  .catalog-cta-banner {
+    background: var(--card-bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 2rem 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    box-shadow: var(--shadow-card);
+  }
+  .catalog-cta-text h3 {
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: var(--ink);
+    margin: 0 0 0.35rem;
+  }
+  .catalog-cta-text p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+
+  /* FAQ SECTION */
+  .faq-section {
+    padding: 3rem 0 4rem;
+    border-top: 1px solid var(--line);
+  }
+  .faq-list {
+    max-width: 44rem;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .faq-item {
+    background: var(--card-bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 1.35rem 1.5rem;
+  }
+  .faq-q {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--ink);
+    margin: 0 0 0.5rem;
+    letter-spacing: -0.01em;
+  }
+  .faq-a {
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--muted);
+    margin: 0;
+  }
+
+  /* Responsive Rules */
+  @media (max-width: 900px) {
+    .hero-section {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+    .values-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    .spotlight-grid {
+      grid-template-columns: 1fr;
+    }
+    .pricing-grid {
+      grid-template-columns: 1fr;
+    }
+    .pricing-card.featured {
+      transform: none;
+    }
+    .teaser-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .catalog-cta-banner {
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 1.5rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .hero-headline {
+      font-size: 1.95rem;
+    }
+    .hero-cta-group {
+      flex-direction: column;
+      width: 100%;
+    }
+    .btn-lg {
+      width: 100%;
+    }
+    .teaser-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .section-title {
+      font-size: 1.55rem;
+    }
+  }
+</style>

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="crayonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e57342" />
+      <stop offset="100%" stop-color="#b34a24" />
+    </linearGradient>
+    <linearGradient id="tipGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+  </defs>
+  <!-- Rounded cozy background badge -->
+  <rect width="100" height="100" rx="24" fill="#f7f3e9" />
+  <rect x="4" y="4" width="92" height="92" rx="20" fill="none" stroke="#e8e2d5" stroke-width="2" />
+  
+  <!-- Stylized playful crayon angled across -->
+  <g transform="translate(50, 50) rotate(-45) translate(-20, -42)">
+    <!-- Crayon tip -->
+    <path d="M 12 0 L 28 0 L 20 -18 Z" fill="url(#tipGrad)" />
+    <!-- Crayon body -->
+    <rect x="12" y="0" width="16" height="64" rx="2" fill="url(#crayonGrad)" />
+    <!-- Crayon paper wrapper label band -->
+    <rect x="12" y="16" width="16" height="32" fill="#242220" />
+    <line x1="12" y1="24" x2="28" y2="24" stroke="#f7f3e9" stroke-width="1.5" stroke-dasharray="2,2" />
+    <line x1="12" y1="40" x2="28" y2="40" stroke="#f7f3e9" stroke-width="1.5" stroke-dasharray="2,2" />
+    <!-- Crayon bottom -->
+    <path d="M 12 64 Q 20 68 28 64 Z" fill="#9a3412" />
+  </g>
+  <!-- Gentle twinkling bedtime star -->
+  <path d="M 78 22 Q 78 28 84 28 Q 78 28 78 34 Q 78 28 72 28 Q 78 28 78 22 Z" fill="#e5a823" />
+  <path d="M 22 72 Q 22 76 26 76 Q 22 76 22 80 Q 22 76 18 76 Q 22 76 22 72 Z" fill="#c85a32" opacity="0.6" />
+</svg>

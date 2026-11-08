@@ -31,15 +31,17 @@ const STORIES = JSON.parse(await readFile(path.join(REPO, 'preview/stories.json'
 const FREE_STORIES = 3;
 
 const PRODUCTS = [
-  { slug: 'kecil',   name: 'Paket Kecil — 10 cerita pilihan', priceIdr: 9000,  tier: 'kecil',   scopeKind: 'story_count', scopeCount: 10, isUpgrade: false, upgradeFrom: null,      sortOrder: 1 },
-  { slug: 'plus',    name: 'Paket Plus — 20 cerita pilihan',  priceIdr: 17000, tier: 'plus',    scopeKind: 'story_count', scopeCount: 20, isUpgrade: false, upgradeFrom: null,      sortOrder: 2 },
-  { slug: 'lengkap', name: 'Paket Lengkap — semua 36 cerita', priceIdr: 29000, tier: 'lengkap', scopeKind: 'all_access',  scopeCount: null, isUpgrade: false, upgradeFrom: null,    sortOrder: 3 },
-  { slug: 'sahabat', name: 'Paket Sahabat — semua + update selamanya', priceIdr: 79000, tier: 'sahabat', scopeKind: 'all_access', scopeCount: null, isUpgrade: false, upgradeFrom: null, sortOrder: 4 },
+  { slug: 'kecil',   name: 'Paket Kecil — 10 cerita pilihan', priceIdr: 15000, tier: 'kecil',   scopeKind: 'story_count', scopeCount: 10, isUpgrade: false, upgradeFrom: null,      sortOrder: 1, isActive: true },
+  { slug: 'plus',    name: 'Paket Plus — 20 cerita pilihan',  priceIdr: 29000, tier: 'plus',    scopeKind: 'story_count', scopeCount: 20, isUpgrade: false, upgradeFrom: null,      sortOrder: 2, isActive: false },
+  { slug: 'lengkap', name: 'Paket Lengkap — 40 cerita saat ini', priceIdr: 49000, tier: 'lengkap', scopeKind: 'all_access',  scopeCount: null, isUpgrade: false, upgradeFrom: null,    sortOrder: 3, isActive: true },
+  { slug: 'sahabat', name: 'Paket Sahabat — Semua Cerita + Update Tiap Minggu Selamanya', priceIdr: 79000, tier: 'sahabat', scopeKind: 'all_access', scopeCount: null, isUpgrade: false, upgradeFrom: null, sortOrder: 4, isActive: true },
   // Upgrade SKUs: visible only to entitled users. Priced at the difference so
   // an early buyer never pays more than a direct buyer.
-  { slug: 'upgrade-kecil-lengkap',   name: 'Upgrade Kecil → Lengkap',   priceIdr: 20000, tier: 'lengkap', scopeKind: 'all_access', scopeCount: null, isUpgrade: true, upgradeFrom: 'kecil',   sortOrder: 10 },
-  { slug: 'upgrade-plus-lengkap',    name: 'Upgrade Plus → Lengkap',    priceIdr: 12000, tier: 'lengkap', scopeKind: 'all_access', scopeCount: null, isUpgrade: true, upgradeFrom: 'plus',    sortOrder: 11 },
-  { slug: 'upgrade-lengkap-sahabat', name: 'Upgrade Lengkap → Sahabat', priceIdr: 50000, tier: 'sahabat', scopeKind: 'all_access', scopeCount: null, isUpgrade: true, upgradeFrom: 'lengkap', sortOrder: 12 },
+  { slug: 'upgrade-kecil-lengkap',   name: 'Upgrade Kecil → Lengkap (40 Cerita)', priceIdr: 34000, tier: 'lengkap', scopeKind: 'all_access', scopeCount: null, isUpgrade: true, upgradeFrom: 'kecil',   sortOrder: 10, isActive: true },
+  { slug: 'upgrade-kecil-sahabat',   name: 'Upgrade Kecil → Sahabat (Update Tiap Minggu)', priceIdr: 64000, tier: 'sahabat', scopeKind: 'all_access', scopeCount: null, isUpgrade: true, upgradeFrom: 'kecil',   sortOrder: 11, isActive: true },
+  { slug: 'upgrade-plus-lengkap',    name: 'Upgrade Plus → Lengkap (40 Cerita)', priceIdr: 20000, tier: 'lengkap', scopeKind: 'all_access', scopeCount: null, isUpgrade: true, upgradeFrom: 'plus',    sortOrder: 12, isActive: true },
+  { slug: 'upgrade-plus-sahabat',    name: 'Upgrade Plus → Sahabat (Update Tiap Minggu)', priceIdr: 50000, tier: 'sahabat', scopeKind: 'all_access', scopeCount: null, isUpgrade: true, upgradeFrom: 'plus',    sortOrder: 13, isActive: true },
+  { slug: 'upgrade-lengkap-sahabat', name: 'Upgrade Lengkap → Sahabat (Update Tiap Minggu)', priceIdr: 30000, tier: 'sahabat', scopeKind: 'all_access', scopeCount: null, isUpgrade: true, upgradeFrom: 'lengkap', sortOrder: 14, isActive: true },
 ];
 
 // "images/story1_page1.jpg" -> "pages/story1_page1.jpg"
@@ -116,7 +118,7 @@ for (const s of STORIES) {
 for (const p of PRODUCTS) {
   await sql`
     insert into products (slug, name, price_idr, tier, scope_kind, scope_count, is_upgrade, upgrade_from, sort_order, is_active)
-    values (${p.slug}, ${p.name}, ${p.priceIdr}, ${p.tier}, ${p.scopeKind}, ${p.scopeCount}, ${p.isUpgrade}, ${p.upgradeFrom}, ${p.sortOrder}, true)
+    values (${p.slug}, ${p.name}, ${p.priceIdr}, ${p.tier}, ${p.scopeKind}, ${p.scopeCount}, ${p.isUpgrade}, ${p.upgradeFrom}, ${p.sortOrder}, ${p.isActive ?? true})
     on conflict (slug) do update set
       name = excluded.name,
       price_idr = excluded.price_idr,
@@ -125,7 +127,8 @@ for (const p of PRODUCTS) {
       scope_count = excluded.scope_count,
       is_upgrade = excluded.is_upgrade,
       upgrade_from = excluded.upgrade_from,
-      sort_order = excluded.sort_order
+      sort_order = excluded.sort_order,
+      is_active = excluded.is_active
   `;
 }
 

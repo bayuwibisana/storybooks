@@ -7,6 +7,7 @@ import { db } from '../../db/client';
 import { stories, storyPages } from '../../db/schema';
 import { accessLevel, readableStoryIds } from '../../db/entitlements';
 import { getViewer } from '../../lib/session';
+import { getStoryUrl, slugifyTitle } from '../../lib/story-url';
 
 const { id } = Astro.params;
 if (!id) {
@@ -15,27 +16,63 @@ if (!id) {
 
 const viewer = await getViewer(Astro);
 
-const [story] = await db
-  .select({
-    id: stories.id,
-    storyNumber: stories.storyNumber,
-    title: stories.title,
-    titleEn: stories.titleEn,
-    category: stories.category,
-    categoryLabel: stories.categoryLabel,
-    ageGroup: stories.ageGroup,
-    moralTheme: stories.moralTheme,
-    synopsis: stories.synopsis,
-    synopsisEn: stories.synopsisEn,
-    protagonist: stories.protagonist,
-    companion: stories.companion,
-    setting: stories.setting,
-    coverImage: stories.coverImage,
-    isFree: stories.isFree,
-  })
-  .from(stories)
-  .where(and(eq(stories.id, id), eq(stories.isPublished, true)))
-  .limit(1);
+const rawParam = String(id || '').trim().toLowerCase();
+const numMatch = rawParam.match(/^(?:story|cerita)?[-_]?0*(\d+)$/i);
+
+const storyFields = {
+  id: stories.id,
+  storyNumber: stories.storyNumber,
+  title: stories.title,
+  titleEn: stories.titleEn,
+  category: stories.category,
+  categoryLabel: stories.categoryLabel,
+  ageGroup: stories.ageGroup,
+  moralTheme: stories.moralTheme,
+  synopsis: stories.synopsis,
+  synopsisEn: stories.synopsisEn,
+  protagonist: stories.protagonist,
+  companion: stories.companion,
+  setting: stories.setting,
+  coverImage: stories.coverImage,
+  isFree: stories.isFree,
+};
+
+let story: any = null;
+
+// 1. Check numeric or story-N / cerita-N (e.g. "2", "story-2", "story-02", "cerita-2")
+if (numMatch) {
+  const storyNum = parseInt(numMatch[1], 10);
+  const [s] = await db
+    .select(storyFields)
+    .from(stories)
+    .where(and(eq(stories.storyNumber, storyNum), eq(stories.isPublished, true)))
+    .limit(1);
+  story = s || null;
+}
+
+// 2. Check exact id (e.g. "selimut-bulan", "barnaby-bear", "story-006-emosi")
+if (!story) {
+  const [s] = await db
+    .select(storyFields)
+    .from(stories)
+    .where(and(eq(stories.id, rawParam), eq(stories.isPublished, true)))
+    .limit(1);
+  story = s || null;
+}
+
+// 3. Check slugified title (e.g. "gadis-yang-merajut-selimut-bulan", "2-gadis-yang-merajut-selimut-bulan")
+if (!story) {
+  const allPublished = await db
+    .select(storyFields)
+    .from(stories)
+    .where(eq(stories.isPublished, true));
+
+  story =
+    allPublished.find((s) => {
+      const slug = slugifyTitle(s.title);
+      return slug === rawParam || `${s.storyNumber}-${slug}` === rawParam;
+    }) || null;
+}
 
 if (!story) {
   return Astro.redirect('/404');
@@ -119,16 +156,23 @@ if (!isLocked) {
 }
 ---
 
-<Layout title={`${story.title} — Kisah Krayon`}>
+<Layout
+  title={`${story.title} — Buku Cerita Anak #${story.storyNumber} Kisah Krayon`}
+  description={story.synopsis || `Baca cerita bergambar anak "${story.title}" dengan ilustrasi krayon lembut pengantar tidur.`}
+  image={`/${story.coverImage}`}
+  type="book"
+  canonicalUrl={new URL(getStoryUrl(story), Astro.url).href}
+  isReader={true}
+>
   {isLocked ? (
     <div style="max-width:48rem;margin:0 auto;display:flex;flex-direction:column;gap:1.5rem">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem">
         <div style="display:flex;align-items:center;gap:0.4rem">
-          <a href="/" style="display:inline-flex;align-items:center;gap:0.4rem;font-size:0.85rem;font-weight:700;color:var(--muted);text-decoration:none;padding:0.4rem 0.8rem;background:#fff;border:1px solid var(--line);border-radius:999px">
-            ← Rak
+          <a href="/perpustakaan" style="display:inline-flex;align-items:center;gap:0.4rem;font-size:0.85rem;font-weight:700;color:var(--muted);text-decoration:none;padding:0.4rem 0.8rem;background:#fff;border:1px solid var(--line);border-radius:999px">
+            ← Perpustakaan
           </a>
           <button class="open-drawer-btn" style="display:inline-flex;align-items:center;gap:0.35rem;font-size:0.85rem;font-weight:700;color:var(--ink);background:#faf8f5;border:1px solid var(--line);border-radius:999px;padding:0.4rem 0.85rem;cursor:pointer;transition:all 0.15s ease">
-            <span>📚</span> <span>36 Cerita</span>
+            <span>📚</span> <span>40 Cerita</span>
           </button>
         </div>
         <span style="font-size:0.75rem;font-weight:800;color:#c85a32;background:#fbeee8;padding:0.3rem 0.75rem;border-radius:999px">
@@ -213,55 +257,52 @@ if (!isLocked) {
       </div>
     </div>
   ) : (
-    <div id="reader-root" class="reader-wrapper" style="max-width:52rem;margin:0 auto;display:flex;flex-direction:column;gap:1rem">
-      <!-- Top Bar -->
-      <div style="background:#fff;border:1px solid var(--line);padding:0.6rem 1rem;border-radius:1rem;display:flex;align-items:center;justify-content:space-between;gap:0.75rem;box-shadow:0 2px 6px rgba(36,34,32,0.03)">
-        <div style="display:flex;align-items:center;gap:0.35rem">
-          <a href="/" style="display:inline-flex;align-items:center;gap:0.35rem;font-size:0.8rem;font-weight:700;color:var(--muted);text-decoration:none;padding:0.35rem 0.65rem;border-radius:999px;border:1px solid var(--line);background:#faf8f5">
-            ← Rak
-          </a>
-          <button class="open-drawer-btn" style="display:inline-flex;align-items:center;gap:0.35rem;font-size:0.8rem;font-weight:700;color:var(--ink);background:#faf8f5;border:1px solid var(--line);border-radius:999px;padding:0.35rem 0.65rem;cursor:pointer;transition:all 0.15s ease" title="Buka Koleksi 36 Cerita">
-            <span>📚</span> <span>36 Cerita</span>
-          </button>
-        </div>
+    <div id="reader-root" class="reader-wrapper">
+      <!-- Reader Top Bar (Ultra-clean, single-row on mobile) -->
+      <div class="reader-top-bar">
+        <div class="top-bar-controls-row">
+          <div class="top-nav-group">
+            <a href="/perpustakaan" class="top-btn btn-back" title="Kembali ke Perpustakaan">
+              <span class="btn-back-icon">←</span>
+              <span class="btn-back-text">Rak</span>
+            </a>
+            <button class="open-drawer-btn top-btn" title="Buka Navigasi 40 Cerita">
+              <span>📚</span>
+              <span>40 Cerita</span>
+            </button>
+          </div>
 
-        <div style="text-align:center;overflow:hidden;padding:0 0.5rem">
-          <span style="display:block;font-size:0.65rem;font-weight:800;color:#c85a32;letter-spacing:0.04em;text-transform:uppercase">
-            #{story.storyNumber} · {story.categoryLabel}
-          </span>
-          <h2 id="header-story-title" style="margin:0;font-size:0.95rem;font-weight:800;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
-            {story.title}
-          </h2>
-        </div>
+          <!-- Desktop Center Title (Shown ONLY on screens >= 900px) -->
+          <div class="top-title-group desktop-only">
+            <span class="top-title-meta">#{story.storyNumber} · {story.categoryLabel}</span>
+            <h2 id="header-story-title" class="top-title-text">{story.title}</h2>
+          </div>
 
-        <div style="display:flex;align-items:center;gap:0.4rem">
-          {isAudioFeatureEnabled && (
-            hasAudio ? (
-              <button id="audio-top-btn" style="height:2rem;padding:0 0.65rem;border-radius:999px;border:1px solid #fed7aa;background:#fff8eb;font-size:0.8rem;font-weight:800;cursor:pointer;color:#78350f;display:inline-flex;align-items:center;gap:0.35rem;transition:all 0.15s ease" title="Putar Suara Narasi (Gemini TTS Despina)">
-                <span id="audio-top-icon">🔊</span> <span id="audio-top-label" style="font-size:0.75rem">Audio</span>
-              </button>
-            ) : (
-              <span style="height:2rem;padding:0 0.65rem;border-radius:999px;border:1px solid var(--line);background:#faf8f5;font-size:0.75rem;font-weight:700;color:var(--muted);display:inline-flex;align-items:center;gap:0.3rem;cursor:not-allowed;opacity:0.65" title="Narasi suara untuk cerita ini sedang dipersiapkan">
-                <span>🔇</span> <span style="font-size:0.7rem">Audio Segera</span>
-              </span>
-            )
-          )}
-          <button id="lang-toggle-btn" style="height:2rem;padding:0 0.65rem;border-radius:999px;border:1px solid var(--line);background:#faf8f5;font-size:0.75rem;font-weight:800;cursor:pointer;color:var(--ink)" title="Ganti Bahasa">
-            ID
-          </button>
-          <button id="font-toggle-btn" style="height:2rem;width:2rem;border-radius:999px;border:1px solid var(--line);background:#faf8f5;font-size:0.75rem;font-weight:800;cursor:pointer;color:var(--ink)" title="Perbesar Huruf">
-            Aa
-          </button>
+          <div class="top-tools-group">
+            <button id="lang-toggle-btn" class="top-tool-btn" title="Ganti Bahasa">
+              ID
+            </button>
+            <button id="font-toggle-btn" class="top-tool-btn square" title="Perbesar Huruf">
+              Aa
+            </button>
+            <button id="sleep-timer-btn" class="top-tool-btn square" title="Pengatur Waktu Tidur (15m/30m/Mati)" aria-label="Pengatur Waktu Tidur">
+              <span id="sleep-timer-icon">⏱️</span>
+              <span id="sleep-timer-text" style="display:none;font-size:0.68rem;font-weight:800;letter-spacing:-0.02em"></span>
+            </button>
+            <button id="dim-toggle-btn" class="top-tool-btn square" title="Mode Redup Pengantar Tidur (Layar Hangat)" aria-label="Mode Redup Pengantar Tidur">
+              <span id="dim-btn-icon">🌙</span>
+            </button>
+          </div>
         </div>
       </div>
 
       <!-- Reading Progress Bar -->
-      <div style="width:100%;height:6px;background:var(--line);border-radius:999px;overflow:hidden">
-        <div id="progress-indicator" style="width:0%;height:100%;background:linear-gradient(90deg, #e5a823, #c85a32);border-radius:999px;transition:width 0.3s ease"></div>
+      <div class="reader-progress-track">
+        <div id="progress-indicator" class="progress-bar-fill"></div>
       </div>
 
       <!-- Step Navigation Beads -->
-      <div id="beads-container" style="display:flex;gap:0.35rem;overflow-x:auto;padding-bottom:0.25rem;scrollbar-width:none">
+      <div id="beads-container" class="beads-bar">
         <button class="step-bead active" data-step="0">Sampul</button>
         {pages.map((p) => (
           <button class="step-bead" data-step={p.number}>{p.number}</button>
@@ -269,21 +310,18 @@ if (!isLocked) {
       </div>
 
       <!-- Story Spread Card -->
-      <article style="background:#fff;border:1px solid var(--line);border-radius:1.5rem;overflow:hidden;box-shadow:0 6px 16px rgba(36,34,32,0.05);display:flex;flex-direction:column">
+      <article id="story-spread-article" class="story-spread-card">
         <!-- 4:3 Art Canvas Frame with Left/Right paddles -->
-        <div style="position:relative;aspect-ratio:4/3;background:#efe8dc;overflow:hidden;user-select:none">
+        <div class="art-canvas-container">
           <img
             id="reader-image"
             src={`/${story.coverImage}`}
             alt={story.title}
-            style="width:100%;height:100%;object-fit:cover;display:block;transition:opacity 0.25s ease"
+            class="reader-image-el"
           />
 
           <!-- Image Loading State Overlay -->
-          <div
-            id="image-loader"
-            style="position:absolute;inset:0;background:#efe8dc;display:none;align-items:center;justify-content:center;z-index:3;transition:opacity 0.25s ease"
-          >
+          <div id="image-loader" class="image-loader-overlay">
             <div style="display:flex;flex-direction:column;align-items:center;gap:0.75rem">
               <div class="crayon-spinner"></div>
               <span style="font-size:0.8rem;font-weight:700;color:#78716c;letter-spacing:0.02em">Menyiapkan ilustrasi krayon...</span>
@@ -291,77 +329,102 @@ if (!isLocked) {
           </div>
 
           <!-- Page Indicator Badge -->
-          <span id="page-indicator-badge" style="position:absolute;top:0.75rem;left:0.75rem;background:rgba(255,255,255,0.92);backdrop-filter:blur(4px);padding:0.25rem 0.65rem;border-radius:999px;font-size:0.7rem;font-weight:800;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,0.1)">
+          <span id="page-indicator-badge" class="page-indicator-badge">
             Sampul Buku
           </span>
 
           <!-- Left / Right Navigation Paddles -->
-          <button id="paddle-prev" style="position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);width:2.5rem;height:2.5rem;border-radius:999px;border:1px solid rgba(0,0,0,0.08);background:rgba(255,255,255,0.85);backdrop-filter:blur(6px);cursor:pointer;font-size:1.1rem;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,0.12);transition:transform 0.15s, opacity 0.2s" title="Sebelumnya">
+          <button id="paddle-prev" class="canvas-paddle paddle-left" title="Sebelumnya">
             ◀
           </button>
-          <button id="paddle-next" style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);width:2.5rem;height:2.5rem;border-radius:999px;border:1px solid rgba(0,0,0,0.08);background:rgba(255,255,255,0.85);backdrop-filter:blur(6px);cursor:pointer;font-size:1.1rem;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,0.12);transition:transform 0.15s, opacity 0.2s" title="Selanjutnya">
+          <button id="paddle-next" class="canvas-paddle paddle-right" title="Selanjutnya">
             ▶
           </button>
         </div>
 
-        <!-- Narrative Text Area -->
-        <div style="padding:1.5rem 1.75rem;display:flex;flex-direction:column;gap:0.75rem;text-align:center">
-          <h3 id="reader-heading" style="margin:0;font-size:1.35rem;font-weight:900;letter-spacing:-0.02em;color:#c85a32">
-            {story.title}
-          </h3>
+        <!-- RIGHT / BOTTOM CONTENT PANE -->
+        <div class="reader-content-pane">
+          <!-- Landscape-Only Mini Header -->
+          <div class="landscape-mini-bar">
+            <div style="display:flex;align-items:center;gap:0.35rem">
+              <a href="/perpustakaan" class="top-btn" title="Kembali ke Perpustakaan">← Rak</a>
+              <button class="open-drawer-btn top-btn" title="Buka Navigasi 40 Cerita">📚 40</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.35rem">
+              <button id="lang-toggle-btn-land" class="top-tool-btn" title="Ganti Bahasa">ID</button>
+              <button id="dim-toggle-btn-land" class="top-tool-btn square" title="Mode Redup">🌙</button>
+            </div>
+          </div>
 
-          <p id="reader-text" class="narrative-body" style="margin:0 auto;max-width:38rem;font-size:1.05rem;line-height:1.75;font-weight:500;color:var(--ink)">
-            {story.synopsis}
-          </p>
+          <!-- IMMEDIATE Audio Narration Toolbar (Directly under image / above text) -->
+          {showAudioPlayer && (
+            <div id="audio-container" class="audio-control-container">
+              <div id="audio-toolbar" class="audio-toolbar-inner">
+                <div class="audio-main-controls">
+                  <button id="audio-play-btn" class="audio-play-btn">
+                    <span id="audio-play-icon">▶</span> <span id="audio-play-text">Putar Suara Narasi</span>
+                  </button>
+                  <button id="audio-stop-btn" class="audio-stop-btn" title="Hentikan">
+                    ⏹ Stop
+                  </button>
+                </div>
+                <div class="audio-secondary-controls">
+                  <button
+                    id="auto-turn-toggle-btn"
+                    type="button"
+                    class="auto-turn-toggle is-active"
+                    title="Balik halaman otomatis saat narasi audio selesai"
+                    aria-pressed="true"
+                  >
+                    <span class="toggle-icon" aria-hidden="true">🔄</span>
+                    <span id="auto-turn-toggle-text">Balik Otomatis</span>
+                  </button>
+                  <span id="audio-status-pill" class="audio-status-pill">
+                    <span>🎙️</span> <span id="audio-status-text">Narasi Suara Siap (Despina)</span>
+                  </span>
+                </div>
+              </div>
+              <div id="audio-en-note" style="display:none;font-size:0.75rem;color:#78350f;background:#fff8eb;border:1px dashed #fed7aa;border-radius:0.75rem;padding:0.45rem 0.75rem;line-height:1.4">
+                ℹ️ <em>Audio bahasa Inggris belum tersedia dan akan segera ditambahkan. Kamu tetap dapat memutar narasi bahasa Indonesia atau membaca teks dalam bahasa Inggris.</em>
+              </div>
+            </div>
+          )}
 
-          <!-- Quote / Characters Pill -->
-          <div id="reader-quote" style="display:inline-block;margin:0.25rem auto 0;background:rgba(47,82,67,0.08);color:#2f5243;padding:0.4rem 1rem;border-radius:999px;font-size:0.85rem;font-weight:700">
-            🐾 Tokoh: {story.protagonist} {story.companion ? `& ${story.companion}` : ''}
+          <!-- Narrative Text Area -->
+          <div class="reader-narrative-box">
+            <h3 id="reader-heading" class="reader-story-title">
+              {story.title}
+            </h3>
+
+            <p id="reader-text" class="narrative-body">
+              {story.synopsis}
+            </p>
+
+            <!-- Quote / Characters Pill -->
+            <div id="reader-quote" class="reader-quote-pill">
+              🐾 Tokoh: {story.protagonist} {story.companion ? `& ${story.companion}` : ''}
+            </div>
+          </div>
+
+          <!-- Parent-Child Co-Reading Guidance Card -->
+          <div id="reader-coreading" class="reader-coreading-card">
+            💡 <strong>Tips Membaca:</strong> Baca dengan nada tenang dan hangat, ajak si kecil menunjuk detail pada ilustrasi krayon sebelum tidur.
+          </div>
+
+          <!-- Bottom Controls -->
+          <div class="reader-bottom-nav">
+            <button id="bottom-prev" class="bottom-nav-btn prev">
+              ← Sebelumnya
+            </button>
+            <span id="bottom-page-label" class="bottom-nav-label">
+              Sampul Buku
+            </span>
+            <button id="bottom-next" class="bottom-nav-btn next">
+              Selanjutnya →
+            </button>
           </div>
         </div>
       </article>
-
-      <!-- Parent-Child Co-Reading Guidance Card -->
-      <div id="reader-coreading" style="background:#fff8eb;border-left:4px solid #e5a823;border-radius:0 1rem 1rem 0;padding:1rem 1.25rem;font-size:0.85rem;line-height:1.6;color:#78350f;box-shadow:0 2px 6px rgba(0,0,0,0.02)">
-        💡 <strong>Tips Membaca:</strong> Baca dengan nada tenang dan hangat, ajak si kecil menunjuk detail pada ilustrasi krayon sebelum tidur.
-      </div>
-
-      <!-- Audio Narration Toolbar (Visible in local env or when PUBLIC_ENABLE_AUDIO=true) -->
-      {showAudioPlayer && (
-        <div id="audio-container" style="display:flex;flex-direction:column;gap:0.4rem">
-          <div id="audio-toolbar" style="background:#fff;border:1px solid var(--line);border-radius:1rem;padding:0.75rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;box-shadow:0 2px 6px rgba(36,34,32,0.03)">
-            <div style="display:flex;align-items:center;gap:0.6rem">
-              <button id="audio-play-btn" style="background:#e5a823;color:#242220;border:none;border-radius:999px;padding:0.45rem 1.15rem;font-size:0.8rem;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:0.4rem;box-shadow:0 1px 3px rgba(0,0,0,0.1);transition:all 0.15s ease">
-                <span id="audio-play-icon">▶</span> <span id="audio-play-text">Putar Suara Narasi</span>
-              </button>
-              <button id="audio-stop-btn" style="background:#faf8f5;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:0.45rem 0.85rem;font-size:0.75rem;font-weight:700;cursor:pointer;transition:all 0.15s ease" title="Hentikan">
-                ⏹ Stop
-              </button>
-            </div>
-            <div style="display:flex;align-items:center;gap:0.5rem">
-              <span id="audio-status-pill" style="font-size:0.75rem;font-weight:700;color:#78350f;background:#fff8eb;padding:0.3rem 0.75rem;border-radius:999px;border:1px solid #fed7aa;display:inline-flex;align-items:center;gap:0.35rem">
-                <span>🎙️</span> <span id="audio-status-text">Narasi Suara Siap (Despina)</span>
-              </span>
-            </div>
-          </div>
-          <div id="audio-en-note" style="display:none;font-size:0.75rem;color:#78350f;background:#fff8eb;border:1px dashed #fed7aa;border-radius:0.75rem;padding:0.5rem 0.85rem;line-height:1.4">
-            ℹ️ <em>Audio bahasa Inggris belum tersedia dan akan segera ditambahkan. Kamu tetap dapat memutar narasi bahasa Indonesia atau membaca teks dalam bahasa Inggris.</em>
-          </div>
-        </div>
-      )}
-
-      <!-- Bottom Controls -->
-      <div style="background:#fff;border:1px solid var(--line);border-radius:1rem;padding:0.75rem 1.25rem;display:flex;align-items:center;justify-content:space-between">
-        <button id="bottom-prev" style="background:#faf8f5;border:1px solid var(--line);border-radius:999px;padding:0.4rem 0.85rem;font-size:0.8rem;font-weight:700;cursor:pointer">
-          ← Sebelumnya
-        </button>
-        <span id="bottom-page-label" style="font-size:0.8rem;font-weight:800;color:var(--muted)">
-          Sampul Buku
-        </span>
-        <button id="bottom-next" style="background:#2f5243;color:#fff;border:none;border-radius:999px;padding:0.45rem 1rem;font-size:0.8rem;font-weight:800;cursor:pointer">
-          Selanjutnya →
-        </button>
-      </div>
 
       <!-- Finish Celebration Modal -->
       <div id="finish-modal" style="display:none;position:fixed;inset:0;background:rgba(36,34,32,0.65);backdrop-filter:blur(4px);z-index:100;align-items:center;justify-content:center;padding:1.25rem">
@@ -375,14 +438,23 @@ if (!isLocked) {
           </p>
           <div style="display:flex;flex-direction:column;gap:0.5rem;margin-top:0.5rem">
             {nextStory && (
-              <a href={`/baca/${nextStory.id}`} style="background:#2f5243;color:#fff;text-decoration:none;font-weight:800;font-size:0.9rem;padding:0.75rem;border-radius:0.75rem;display:block">
+              <a href={getStoryUrl(nextStory)} style="background:#2f5243;color:#fff;text-decoration:none;font-weight:800;font-size:0.9rem;padding:0.75rem;border-radius:0.75rem;display:block">
                 Cerita Selanjutnya: #{nextStory.storyNumber} {nextStory.title} →
               </a>
             )}
+            <a
+              id="modal-share-wa"
+              href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Alhamdulillah si kecil tidur nyenyak setelah membaca cerita "${story.title}" di Kisah Krayon 🖍️✨.\n\nBaca dongeng dan cerita bergambar pengantar tidur anak lainnya di:\nhttps://storybooks.bayuwibisana15.workers.dev/baca/${slugifyTitle(story.title)}`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style="background:#25D366;color:#fff;text-decoration:none;font-weight:800;font-size:0.85rem;padding:0.65rem 1rem;border-radius:0.75rem;display:inline-flex;align-items:center;justify-content:center;gap:0.4rem;box-shadow:0 2px 6px rgba(37,211,102,0.3)"
+            >
+              <span>💬</span> <span>Bagikan ke WhatsApp</span>
+            </a>
             <button id="modal-replay-btn" style="background:#faf8f5;border:1px solid var(--line);color:var(--ink);font-weight:700;font-size:0.85rem;padding:0.65rem;border-radius:0.75rem;cursor:pointer">
               🔄 Baca Ulang dari Sampul
             </button>
-            <a href="/" style="color:var(--muted);text-decoration:none;font-weight:700;font-size:0.8rem;padding:0.5rem">
+            <a href="/perpustakaan" style="color:var(--muted);text-decoration:none;font-weight:700;font-size:0.8rem;padding:0.5rem">
               ← Kembali ke Perpustakaan
             </a>
           </div>
@@ -392,16 +464,16 @@ if (!isLocked) {
   )}
 
   <!-- Floating Edge Tab for Left Margin -->
-  <button id="floating-drawer-btn" class="floating-edge-tab" title="Buka Navigasi 36 Cerita (Navigasi Cepat)">
+  <button id="floating-drawer-btn" class="floating-edge-tab" title="Buka Navigasi 40 Cerita (Navigasi Cepat)">
     <span style="font-size:1.05rem;margin-bottom:0.15rem">📚</span>
-    <span>36 CERITA</span>
+    <span>40 CERITA</span>
   </button>
 
   <!-- Drawer Backdrop Overlay -->
   <div id="drawer-backdrop" class="drawer-backdrop"></div>
 
   <!-- Off-Canvas Drawer Navigation -->
-  <aside id="story-drawer" class="story-drawer" aria-label="Navigasi 36 Cerita">
+  <aside id="story-drawer" class="story-drawer" aria-label="Navigasi 40 Cerita">
     <!-- Drawer Header -->
     <div class="drawer-header">
       <div style="display:flex;align-items:center;gap:0.5rem">
@@ -411,7 +483,7 @@ if (!isLocked) {
             Koleksi Cerita
           </h2>
           <span style="font-size:0.72rem;color:var(--muted);font-weight:600">
-            36 Kisah Pengantar Tidur
+            40 Kisah Pengantar Tidur
           </span>
         </div>
       </div>
@@ -440,7 +512,7 @@ if (!isLocked) {
 
         return (
           <a
-            href={`/baca/${s.id}`}
+            href={getStoryUrl(s)}
             class={`drawer-story-item ${isCurrent ? 'is-current' : ''}`}
             data-number={s.storyNumber.toString()}
             data-title={`${s.title} ${s.titleEn || ''}`}
@@ -480,6 +552,202 @@ if (!isLocked) {
 </Layout>
 
 <style>
+  /* Reader Wrapper */
+  .reader-wrapper {
+    width: 100%;
+    max-width: 52rem;
+    margin: 0 auto;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  /* Reader Top Bar */
+  .reader-top-bar {
+    background: #fff;
+    border: 1px solid var(--line);
+    padding: 0.45rem 0.75rem;
+    border-radius: 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    box-shadow: 0 2px 8px rgba(36, 34, 32, 0.03);
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  .top-bar-controls-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .top-nav-group {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-shrink: 0;
+  }
+
+  .top-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 0.35rem 0.65rem;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: #faf8f5;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+    min-height: 34px;
+    box-sizing: border-box;
+  }
+  .top-btn:hover {
+    color: var(--ink);
+    border-color: #c85a32;
+  }
+
+  .top-tools-group {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-shrink: 0;
+  }
+
+  .top-tool-btn {
+    height: 2.1rem;
+    padding: 0 0.6rem;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: #faf8f5;
+    font-size: 0.75rem;
+    font-weight: 800;
+    cursor: pointer;
+    color: var(--ink);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+    box-sizing: border-box;
+  }
+  .top-tool-btn:hover {
+    border-color: #c85a32;
+    color: #c85a32;
+  }
+  .top-tool-btn.square {
+    width: 2.1rem;
+    padding: 0;
+  }
+
+  .top-title-group {
+    text-align: center;
+    overflow: hidden;
+    padding: 0 0.5rem;
+  }
+  .top-title-meta {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #c85a32;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .top-title-text {
+    margin: 0;
+    font-size: 0.92rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Desktop vs Mobile Top Bar switching */
+  @media (min-width: 900px) {
+    .reader-top-bar {
+      padding: 0.6rem 1rem;
+    }
+    .top-bar-controls-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 0.75rem;
+    }
+    .desktop-only {
+      display: block;
+    }
+  }
+
+  @media (max-width: 899px) {
+    .desktop-only {
+      display: none !important;
+    }
+    .reader-top-bar {
+      padding: 0.35rem 0.55rem;
+    }
+    .top-bar-controls-row {
+      gap: 0.25rem;
+    }
+    .top-nav-group {
+      gap: 0.25rem;
+    }
+    .top-tools-group {
+      gap: 0.25rem;
+    }
+    .top-btn {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+      height: 2rem;
+    }
+    .top-tool-btn {
+      height: 2rem;
+      padding: 0 0.45rem;
+      font-size: 0.72rem;
+    }
+    .top-tool-btn.square {
+      width: 2rem;
+      padding: 0;
+    }
+  }
+
+  /* Reading Progress Track */
+  .reader-progress-track {
+    width: 100%;
+    height: 5px;
+    background: var(--line);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #e5a823, #c85a32);
+    border-radius: 999px;
+    transition: width 0.3s ease;
+  }
+
+  /* Beads Bar */
+  .beads-bar {
+    display: flex;
+    gap: 0.35rem;
+    overflow-x: auto;
+    padding: 0.15rem 0.15rem 0.3rem;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
+  }
+  .beads-bar::-webkit-scrollbar {
+    display: none;
+  }
   .step-bead {
     flex-shrink: 0;
     padding: 0.25rem 0.65rem;
@@ -491,6 +759,8 @@ if (!isLocked) {
     color: var(--muted);
     cursor: pointer;
     transition: all 0.15s ease;
+    min-height: 28px;
+    box-sizing: border-box;
   }
   .step-bead:hover {
     border-color: #c85a32;
@@ -502,9 +772,451 @@ if (!isLocked) {
     color: #fff;
     box-shadow: 0 1px 4px rgba(200, 90, 50, 0.3);
   }
+
+  /* Story Spread Card & Frame */
+  .story-spread-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 1.35rem;
+    overflow: hidden;
+    box-shadow: 0 6px 18px rgba(36, 34, 32, 0.04);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .art-canvas-container {
+    position: relative;
+    aspect-ratio: 4/3;
+    background: #efe8dc;
+    overflow: hidden;
+    user-select: none;
+  }
+  .reader-image-el {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: opacity 0.25s ease;
+  }
+  .image-loader-overlay {
+    position: absolute;
+    inset: 0;
+    background: #efe8dc;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 3;
+    transition: opacity 0.25s ease;
+  }
+  .page-indicator-badge {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(4px);
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--ink);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    z-index: 2;
+  }
+  .canvas-paddle {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 999px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(6px);
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    transition: transform 0.15s, opacity 0.2s;
+    z-index: 2;
+  }
+  .paddle-left {
+    left: 0.75rem;
+  }
+  .paddle-right {
+    right: 0.75rem;
+  }
+
+  /* Content Pane */
+  .reader-content-pane {
+    display: flex;
+    flex-direction: column;
+  }
+  .landscape-mini-bar {
+    display: none;
+  }
+
+  /* Immediate Audio Toolbar */
+  .audio-control-container {
+    background: #fffcf7;
+    border-bottom: 1px solid var(--line-subtle);
+    padding: 0.55rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .audio-toolbar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .audio-main-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+  .audio-secondary-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+  .audio-play-btn {
+    background: #e5a823;
+    color: #242220;
+    border: none;
+    border-radius: 999px;
+    padding: 0.45rem 1.15rem;
+    font-size: 0.82rem;
+    font-weight: 800;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    min-height: 38px;
+    transition: all 0.15s ease;
+  }
+  .audio-play-btn:hover {
+    filter: brightness(0.96);
+    transform: translateY(-1px);
+  }
+  .audio-stop-btn {
+    background: #faf8f5;
+    border: 1px solid var(--line);
+    color: var(--muted);
+    border-radius: 999px;
+    padding: 0.45rem 0.8rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    min-height: 38px;
+    transition: all 0.15s ease;
+  }
+  .auto-turn-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: #faf8f5;
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 800;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    min-height: 32px;
+    box-sizing: border-box;
+  }
+  .auto-turn-toggle.is-active {
+    background: #eef7f2;
+    border-color: #bbf7d0;
+    color: #2f5243;
+    box-shadow: 0 1px 3px rgba(47, 82, 67, 0.08);
+  }
+  .audio-status-pill {
+    font-size: 0.73rem;
+    font-weight: 700;
+    color: #78350f;
+    background: #fff8eb;
+    padding: 0.28rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid #fed7aa;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  /* Narrative Box & Typography */
+  .reader-narrative-box {
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    text-align: center;
+  }
+  .reader-story-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    color: #c85a32;
+  }
+  .narrative-body {
+    margin: 0 auto;
+    max-width: 38rem;
+    font-size: 1.05rem;
+    line-height: 1.75;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .reader-quote-pill {
+    display: inline-block;
+    margin: 0.25rem auto 0;
+    background: rgba(47, 82, 67, 0.08);
+    color: #2f5243;
+    padding: 0.35rem 0.95rem;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  /* Co-Reading Card */
+  .reader-coreading-card {
+    margin: 0 1.25rem 0.75rem;
+    background: #fff8eb;
+    border-left: 4px solid #e5a823;
+    border-radius: 0 0.85rem 0.85rem 0;
+    padding: 0.75rem 1rem;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: #78350f;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+  }
+
+  /* Bottom Nav */
+  .reader-bottom-nav {
+    background: #faf8f5;
+    border-top: 1px solid var(--line-subtle);
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .bottom-nav-btn {
+    border-radius: 999px;
+    padding: 0.45rem 1rem;
+    font-size: 0.82rem;
+    font-weight: 800;
+    cursor: pointer;
+    min-height: 38px;
+    box-sizing: border-box;
+    transition: all 0.15s ease;
+  }
+  .bottom-nav-btn.prev {
+    background: #fff;
+    border: 1px solid var(--line);
+    color: var(--ink);
+  }
+  .bottom-nav-btn.next {
+    background: #2f5243;
+    color: #fff;
+    border: none;
+    box-shadow: 0 1px 4px rgba(47, 82, 67, 0.2);
+  }
+  .bottom-nav-label {
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--muted);
+  }
+
   .large-font .narrative-body {
-    font-size: 1.3rem !important;
-    line-height: 1.9 !important;
+    font-size: 1.25rem !important;
+    line-height: 1.85 !important;
+  }
+
+  /* Mobile Portrait Tuning */
+  @media (max-width: 680px) {
+    .reader-wrapper {
+      gap: 0.5rem;
+    }
+    .story-spread-card {
+      border-radius: 1rem;
+    }
+    .audio-control-container {
+      padding: 0.45rem 0.75rem;
+    }
+    .reader-narrative-box {
+      padding: 0.95rem 0.75rem;
+      gap: 0.5rem;
+    }
+    .reader-story-title {
+      font-size: 1.15rem;
+    }
+    .narrative-body {
+      font-size: 0.98rem;
+      line-height: 1.65;
+    }
+    .reader-quote-pill {
+      font-size: 0.76rem;
+      padding: 0.25rem 0.75rem;
+    }
+    .reader-coreading-card {
+      margin: 0 0.75rem 0.5rem;
+      padding: 0.6rem 0.75rem;
+      font-size: 0.78rem;
+      line-height: 1.45;
+    }
+    .canvas-paddle {
+      width: 2.15rem;
+      height: 2.15rem;
+      font-size: 0.95rem;
+    }
+    .reader-bottom-nav {
+      padding: 0.65rem 0.75rem;
+    }
+    .bottom-nav-btn {
+      font-size: 0.78rem;
+      padding: 0.4rem 0.85rem;
+    }
+    .bottom-nav-label {
+      font-size: 0.75rem;
+    }
+  }
+
+  /* Floating Edge Tab (Desktop only, completely hidden on mobile/tablet) */
+  @media (max-width: 1024px), (hover: none), (pointer: coarse) {
+    .floating-edge-tab {
+      display: none !important;
+    }
+  }
+
+  /* Mobile Landscape Split-Screen (True Picture-Book Two-Column Spread) */
+  @media (orientation: landscape) and (max-height: 560px) {
+    :global(html), :global(body) {
+      height: 100% !important;
+      overflow: hidden !important;
+      background: #141210 !important;
+    }
+    :global(body.is-reader-layout header) {
+      display: none !important;
+    }
+    :global(body.is-reader-layout main) {
+      padding: 0 !important;
+      max-width: 100vw !important;
+      height: 100vh !important;
+      height: 100dvh !important;
+      overflow: hidden !important;
+    }
+    .reader-wrapper {
+      max-width: 100vw !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      height: 100dvh !important;
+      gap: 0 !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    .reader-top-bar,
+    .reader-progress-track,
+    .beads-bar,
+    .floating-edge-tab {
+      display: none !important;
+    }
+    .story-spread-card {
+      display: grid !important;
+      grid-template-columns: minmax(0, 53vw) minmax(0, 47vw) !important;
+      height: 100vh !important;
+      height: 100dvh !important;
+      width: 100vw !important;
+      border-radius: 0 !important;
+      border: none !important;
+      box-shadow: none !important;
+      background: #181614 !important;
+    }
+    .art-canvas-container {
+      height: 100vh !important;
+      height: 100dvh !important;
+      width: 100% !important;
+      background: #141210 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      aspect-ratio: auto !important;
+      border-radius: 0 !important;
+      position: relative !important;
+    }
+    .reader-image-el {
+      max-height: 100vh !important;
+      max-height: 100dvh !important;
+      max-width: 100% !important;
+      width: auto !important;
+      height: auto !important;
+      object-fit: contain !important;
+      display: block !important;
+    }
+    .reader-content-pane {
+      height: 100vh !important;
+      height: 100dvh !important;
+      background: #fff !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: space-between !important;
+      padding: 0.45rem 0.85rem !important;
+      box-sizing: border-box !important;
+      overflow-y: auto !important;
+      -webkit-overflow-scrolling: touch !important;
+    }
+    .landscape-mini-bar {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      padding-bottom: 0.3rem !important;
+      border-bottom: 1px solid var(--line-subtle) !important;
+    }
+    .reader-narrative-box {
+      padding: 0.35rem 0 !important;
+      gap: 0.35rem !important;
+    }
+    .reader-story-title {
+      font-size: 1.05rem !important;
+      margin: 0 !important;
+    }
+    .narrative-body {
+      font-size: 0.88rem !important;
+      line-height: 1.55 !important;
+      text-align: left !important;
+    }
+    .audio-control-container {
+      margin: 0.2rem 0 !important;
+      padding: 0.3rem 0.5rem !important;
+      border-radius: 0.65rem !important;
+      background: #faf6ed !important;
+      border: 1px solid var(--line-subtle) !important;
+    }
+    .audio-toolbar-inner {
+      padding: 0 !important;
+      border: none !important;
+      box-shadow: none !important;
+      background: transparent !important;
+      gap: 0.3rem !important;
+    }
+    .reader-coreading-card {
+      margin: 0.2rem 0 !important;
+      padding: 0.3rem 0.6rem !important;
+      font-size: 0.72rem !important;
+      line-height: 1.35 !important;
+    }
+    .reader-bottom-nav {
+      margin-top: auto !important;
+      padding: 0.35rem 0 !important;
+      border-top: 1px solid var(--line-subtle) !important;
+      background: transparent !important;
+    }
   }
 
   /* Floating Edge Tab */
@@ -765,6 +1477,165 @@ if (!isLocked) {
   @keyframes crayon-spin {
     to { transform: rotate(360deg); }
   }
+
+  /* Bedtime Dim Mode (Warm Amber / Dark Night Theme) */
+  :global(body.bedtime-dim) {
+    background-color: #161412 !important;
+    color: #e7e0d3 !important;
+  }
+  :global(body.bedtime-dim) header {
+    background: rgba(22, 20, 18, 0.94) !important;
+    border-color: #332d28 !important;
+  }
+  :global(body.bedtime-dim) header a,
+  :global(body.bedtime-dim) header button {
+    color: #e7e0d3 !important;
+  }
+  :global(body.bedtime-dim) #reader-root > div,
+  :global(body.bedtime-dim) #story-spread-article,
+  :global(body.bedtime-dim) .story-spread-card {
+    background: #231f1c !important;
+    border-color: #38332e !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+  }
+  :global(body.bedtime-dim) .reader-content-pane {
+    background: #231f1c !important;
+  }
+  :global(body.bedtime-dim) .audio-control-container {
+    background: #27211c !important;
+    border-color: #38302b !important;
+  }
+  :global(body.bedtime-dim) .audio-stop-btn {
+    background: #2d2621 !important;
+    border-color: #463c34 !important;
+    color: #e7ded2 !important;
+  }
+  :global(body.bedtime-dim) .auto-turn-toggle {
+    background: #2d2621 !important;
+    border-color: #463c34 !important;
+    color: #c4bbb0 !important;
+  }
+  :global(body.bedtime-dim) .auto-turn-toggle.is-active {
+    background: #1e3a2b !important;
+    border-color: #2f5243 !important;
+    color: #86efac !important;
+  }
+  :global(body.bedtime-dim) .landscape-mini-bar {
+    border-color: #38302b !important;
+  }
+  :global(body.bedtime-dim) .reader-bottom-nav {
+    background: #1c1815 !important;
+    border-color: #38302b !important;
+  }
+  :global(body.bedtime-dim) #reader-image {
+    filter: brightness(0.88) contrast(0.96) sepia(0.08);
+  }
+  :global(body.bedtime-dim) #page-indicator-badge {
+    background: rgba(35, 31, 28, 0.9) !important;
+    color: #f5efe6 !important;
+    border: 1px solid #443e38 !important;
+  }
+  :global(body.bedtime-dim) #paddle-prev,
+  :global(body.bedtime-dim) #paddle-next {
+    background: rgba(35, 31, 28, 0.85) !important;
+    color: #f5efe6 !important;
+    border-color: #443e38 !important;
+  }
+  :global(body.bedtime-dim) #header-story-title,
+  :global(body.bedtime-dim) #header-story-title-mobile,
+  :global(body.bedtime-dim) #reader-heading {
+    color: #fde68a !important;
+  }
+  :global(body.bedtime-dim) .reader-top-bar {
+    background: #221d1a !important;
+    border-color: #38302b !important;
+  }
+  :global(body.bedtime-dim) .top-btn,
+  :global(body.bedtime-dim) .top-tool-btn {
+    background: #2d2621 !important;
+    border-color: #463c34 !important;
+    color: #e7ded2 !important;
+  }
+  :global(body.bedtime-dim) .top-tool-btn.audio-btn {
+    background: #3d2b1f !important;
+    border-color: #7c4a23 !important;
+    color: #fde68a !important;
+  }
+  #sleep-timer-btn.active {
+    background: #fef3c7 !important;
+    border-color: #f59e0b !important;
+    color: #b45309 !important;
+  }
+  :global(body.bedtime-dim) #sleep-timer-btn.active {
+    background: #451a03 !important;
+    border-color: #f59e0b !important;
+    color: #fde68a !important;
+  }
+  :global(body.bedtime-dim) .mobile-only {
+    border-color: #362e28 !important;
+  }
+  :global(body.bedtime-dim) .top-title-meta {
+    color: #f59e0b !important;
+  }
+  :global(body.bedtime-dim) #reader-text {
+    color: #f3eee6 !important;
+  }
+  :global(body.bedtime-dim) #reader-quote {
+    background: #2d241d !important;
+    border: 1px solid #584435 !important;
+    color: #fbbf24 !important;
+  }
+  :global(body.bedtime-dim) #reader-coreading {
+    background: #2a221b !important;
+    border-left: 4px solid #f59e0b !important;
+    border-color: #44372e !important;
+    color: #e7ded2 !important;
+  }
+  :global(body.bedtime-dim) #reader-coreading strong {
+    color: #fde68a !important;
+  }
+  :global(body.bedtime-dim) .step-bead {
+    background: #28221e !important;
+    border-color: #423830 !important;
+    color: #c4bbb0 !important;
+  }
+  :global(body.bedtime-dim) .step-bead.active {
+    background: #c85a32 !important;
+    border-color: #c85a32 !important;
+    color: #fff !important;
+  }
+  :global(body.bedtime-dim) #story-drawer {
+    background: #1c1816 !important;
+    border-color: #38332e !important;
+    color: #e7e0d3 !important;
+  }
+  :global(body.bedtime-dim) .drawer-story-item {
+    background: #25201d !important;
+    border-color: #38332e !important;
+    color: #e7e0d3 !important;
+  }
+  :global(body.bedtime-dim) .drawer-story-item.is-current {
+    background: #382c23 !important;
+    border-color: #c85a32 !important;
+  }
+  :global(body.bedtime-dim) .bottom-paddle {
+    background: #25201d !important;
+    border-color: #38332e !important;
+    color: #e7e0d3 !important;
+  }
+  :global(body.bedtime-dim) .floating-edge-tab {
+    background: #25201d !important;
+    border-color: #38332e !important;
+    color: #e7e0d3 !important;
+  }
+  :global(body.bedtime-dim) #bottom-prev {
+    background: #2d2621 !important;
+    border-color: #463c34 !important;
+    color: #e7ded2 !important;
+  }
+  :global(body.bedtime-dim) #bottom-page-label {
+    color: #c4bbb0 !important;
+  }
 </style>
 
 <script is:inline define:vars={{ storyData: story, pagesData: pages, isLocked, showAudio: showAudioPlayer }}>
@@ -830,8 +1701,17 @@ if (!isLocked) {
   if (!isLocked) {
     let currentStep = 0; // 0 = Cover, 1..10 = Pages
     let currentLang = 'id'; // 'id' | 'en'
-    let isLargeFont = false;
+    try {
+      const savedLang = localStorage.getItem('kisah_reader_lang');
+      if (savedLang === 'en' || savedLang === 'id') {
+        currentLang = savedLang;
+      }
+    } catch (e) {}
 
+    let isLargeFont = false;
+    try {
+      isLargeFont = localStorage.getItem('kisah_reader_font') === 'large';
+    } catch (e) {}
     // Audio narration state
     let currentAudio = null;
     let isAudioPlaying = false;
@@ -883,10 +1763,40 @@ if (!isLocked) {
     const audioTopIcon = document.getElementById('audio-top-icon');
     const audioTopLabel = document.getElementById('audio-top-label');
 
+    // Auto-turn state
+    let isAutoTurn = true;
+    let autoTurnTimer = null;
+    const autoTurnBtn = document.getElementById('auto-turn-toggle-btn');
+    const autoTurnText = document.getElementById('auto-turn-toggle-text');
+
+    if (autoTurnBtn) {
+      autoTurnBtn.addEventListener('click', () => {
+        isAutoTurn = !isAutoTurn;
+        if (isAutoTurn) {
+          autoTurnBtn.classList.add('is-active');
+          autoTurnBtn.setAttribute('aria-pressed', 'true');
+          if (autoTurnText) autoTurnText.textContent = 'Balik Otomatis';
+        } else {
+          autoTurnBtn.classList.remove('is-active');
+          autoTurnBtn.setAttribute('aria-pressed', 'false');
+          if (autoTurnText) autoTurnText.textContent = 'Balik Manual';
+          if (autoTurnTimer) {
+            clearTimeout(autoTurnTimer);
+            autoTurnTimer = null;
+          }
+        }
+      });
+    }
+
     function stopAudio() {
+      if (autoTurnTimer) {
+        clearTimeout(autoTurnTimer);
+        autoTurnTimer = null;
+      }
       if (currentAudio) {
         currentAudio.pause();
         currentAudio.currentTime = 0;
+        currentAudio.onended = null;
         currentAudio = null;
       }
       isAudioPlaying = false;
@@ -910,38 +1820,11 @@ if (!isLocked) {
       }
     }
 
-    function toggleAudio() {
-      if (isAudioPlaying && currentAudio) {
-        currentAudio.pause();
-        isAudioPlaying = false;
-        audioPlayIcon.textContent = '▶';
-        audioPlayText.textContent = 'Lanjutkan Narasi';
-        if (audioTopBtn) {
-          if (audioTopIcon) audioTopIcon.textContent = '▶';
-          if (audioTopLabel) audioTopLabel.textContent = 'Lanjut';
-          audioTopBtn.style.background = '#fff8eb';
-          audioTopBtn.style.color = '#78350f';
-        }
-        if (audioStatusText) audioStatusText.textContent = 'Narasi Suara Dijeda';
-        return;
+    function playAudio(fromAutoTurn = false) {
+      if (autoTurnTimer) {
+        clearTimeout(autoTurnTimer);
+        autoTurnTimer = null;
       }
-
-      if (currentAudio && currentAudio.paused) {
-        currentAudio.play().then(() => {
-          isAudioPlaying = true;
-          audioPlayIcon.textContent = '⏸';
-          audioPlayText.textContent = 'Jeda Narasi';
-          if (audioTopBtn) {
-            if (audioTopIcon) audioTopIcon.textContent = '⏸';
-            if (audioTopLabel) audioTopLabel.textContent = 'Jeda';
-            audioTopBtn.style.background = '#2f5243';
-            audioTopBtn.style.color = '#fff';
-          }
-          if (audioStatusText) audioStatusText.textContent = 'Memutar Narasi Suara...';
-        }).catch(err => console.warn(err));
-        return;
-      }
-
       stopAudio();
 
       const isCover = currentStep === 0;
@@ -955,6 +1838,7 @@ if (!isLocked) {
 
       const audio = new Audio(audioPath);
       currentAudio = audio;
+      window.__currentAudio = audio;
 
       audio.play().then(() => {
         isAudioPlaying = true;
@@ -972,16 +1856,73 @@ if (!isLocked) {
         }
         if (audioStatusText) {
           const pageLabel = isCover ? 'Sampul Buku' : `Halaman ${currentStep}`;
-          audioStatusText.textContent = `Memutar: ${pageLabel} • Gemini TTS (Despina)`;
+          audioStatusText.textContent = `Memutar: ${pageLabel} • Despina`;
         }
       }).catch((err) => {
         console.warn('Audio play error:', err);
+        stopAudio();
         if (audioStatusText) audioStatusText.textContent = 'File narasi belum tersedia';
       });
 
       audio.onended = () => {
         stopAudio();
+        if (isAutoTurn) {
+          if (currentStep < totalSteps) {
+            const nextLabel = currentStep === 0 ? 'Halaman 1' : `Halaman ${currentStep + 1}`;
+            if (audioStatusText) {
+              audioStatusText.textContent = `Selesai. Membalik ke ${nextLabel}...`;
+            }
+            autoTurnTimer = setTimeout(() => {
+              autoTurnTimer = null;
+              goToStep(currentStep + 1, /* shouldPlayAudio = */ true);
+            }, 850);
+          } else {
+            // Final page 10 finished!
+            if (audioStatusText) {
+              audioStatusText.textContent = `Cerita selesai! Selamat tidur...`;
+            }
+            autoTurnTimer = setTimeout(() => {
+              autoTurnTimer = null;
+              goToStep(totalSteps + 1);
+            }, 1000);
+          }
+        }
       };
+    }
+
+    function toggleAudio() {
+      if (isAudioPlaying && currentAudio) {
+        currentAudio.pause();
+        isAudioPlaying = false;
+        if (audioPlayIcon) audioPlayIcon.textContent = '▶';
+        if (audioPlayText) audioPlayText.textContent = 'Lanjutkan Narasi';
+        if (audioTopBtn) {
+          if (audioTopIcon) audioTopIcon.textContent = '▶';
+          if (audioTopLabel) audioTopLabel.textContent = 'Lanjut';
+          audioTopBtn.style.background = '#fff8eb';
+          audioTopBtn.style.color = '#78350f';
+        }
+        if (audioStatusText) audioStatusText.textContent = 'Narasi Suara Dijeda';
+        return;
+      }
+
+      if (currentAudio && currentAudio.paused) {
+        currentAudio.play().then(() => {
+          isAudioPlaying = true;
+          if (audioPlayIcon) audioPlayIcon.textContent = '⏸';
+          if (audioPlayText) audioPlayText.textContent = 'Jeda Narasi';
+          if (audioTopBtn) {
+            if (audioTopIcon) audioTopIcon.textContent = '⏸';
+            if (audioTopLabel) audioTopLabel.textContent = 'Jeda';
+            audioTopBtn.style.background = '#2f5243';
+            audioTopBtn.style.color = '#fff';
+          }
+          if (audioStatusText) audioStatusText.textContent = 'Memutar Narasi Suara...';
+        }).catch(err => console.warn(err));
+        return;
+      }
+
+      playAudio();
     }
 
     if (audioPlayBtn) {
@@ -1137,7 +2078,7 @@ if (!isLocked) {
       }
     }
 
-    function goToStep(step) {
+    function goToStep(step, shouldPlayAudio = false) {
       if (step < 0) return;
       if (step > totalSteps) {
         stopAudio();
@@ -1149,6 +2090,12 @@ if (!isLocked) {
       currentStep = step;
       updateReader();
       window.scrollTo({ top: 120, behavior: 'smooth' });
+
+      if (shouldPlayAudio) {
+        setTimeout(() => {
+          playAudio(/* fromAutoTurn = */ true);
+        }, 300);
+      }
     }
 
     paddlePrev.addEventListener('click', () => goToStep(currentStep - 1));
@@ -1164,15 +2111,35 @@ if (!isLocked) {
       });
     });
 
-    langBtn.addEventListener('click', () => {
+    if (langBtn) {
+      langBtn.textContent = currentLang.toUpperCase();
+    }
+    const langBtnLand = document.getElementById('lang-toggle-btn-land');
+    if (langBtnLand) {
+      langBtnLand.textContent = currentLang.toUpperCase();
+    }
+
+    if (isLargeFont && readerRoot && fontBtn) {
+      readerRoot.classList.add('large-font');
+      fontBtn.style.background = '#c85a32';
+      fontBtn.style.color = '#fff';
+    }
+
+    function toggleLanguage() {
       stopAudio();
       currentLang = currentLang === 'id' ? 'en' : 'id';
-      langBtn.textContent = currentLang.toUpperCase();
+      try { localStorage.setItem('kisah_reader_lang', currentLang); } catch (e) {}
+      if (langBtn) langBtn.textContent = currentLang.toUpperCase();
+      if (langBtnLand) langBtnLand.textContent = currentLang.toUpperCase();
       updateReader();
-    });
+    }
+
+    if (langBtn) langBtn.addEventListener('click', toggleLanguage);
+    if (langBtnLand) langBtnLand.addEventListener('click', toggleLanguage);
 
     fontBtn.addEventListener('click', () => {
       isLargeFont = !isLargeFont;
+      try { localStorage.setItem('kisah_reader_font', isLargeFont ? 'large' : 'normal'); } catch (e) {}
       if (isLargeFont) {
         readerRoot.classList.add('large-font');
         fontBtn.style.background = '#c85a32';
@@ -1184,6 +2151,207 @@ if (!isLocked) {
       }
     });
 
+    // Sleep Timer (15m / 30m / Off)
+    const sleepTimerBtn = document.getElementById('sleep-timer-btn');
+    const sleepTimerIcon = document.getElementById('sleep-timer-icon');
+    const sleepTimerText = document.getElementById('sleep-timer-text');
+    let sleepTimerMinutes = 0;
+    let sleepTimerSecondsLeft = 0;
+    let sleepTimerInterval = null;
+
+    function updateSleepTimerUI() {
+      if (!sleepTimerBtn) return;
+      if (sleepTimerSecondsLeft > 0) {
+        sleepTimerBtn.classList.add('active');
+        sleepTimerBtn.style.width = 'auto';
+        sleepTimerBtn.style.padding = '0 0.5rem';
+        if (sleepTimerText) {
+          sleepTimerText.style.display = 'inline';
+          const mins = Math.floor(sleepTimerSecondsLeft / 60);
+          const secs = sleepTimerSecondsLeft % 60;
+          sleepTimerText.textContent = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+      } else {
+        sleepTimerBtn.classList.remove('active');
+        sleepTimerBtn.style.width = '2rem';
+        sleepTimerBtn.style.padding = '0';
+        if (sleepTimerText) {
+          sleepTimerText.style.display = 'none';
+          sleepTimerText.textContent = '';
+        }
+      }
+    }
+
+    function onSleepTimerEnd() {
+      if (sleepTimerInterval) {
+        clearInterval(sleepTimerInterval);
+        sleepTimerInterval = null;
+      }
+      sleepTimerMinutes = 0;
+      sleepTimerSecondsLeft = 0;
+      updateSleepTimerUI();
+
+      // Disable auto-turn so pages stop flipping
+      isAutoTurn = false;
+      if (autoTurnBtn) {
+        autoTurnBtn.classList.remove('is-active');
+        autoTurnBtn.setAttribute('aria-pressed', 'false');
+      }
+
+      // Smooth audio fade out over 2.5 seconds
+      if (currentAudio && !currentAudio.paused) {
+        let vol = 1.0;
+        const fade = setInterval(() => {
+          vol -= 0.15;
+          if (vol <= 0.05) {
+            clearInterval(fade);
+            stopAudio();
+            if (currentAudio) currentAudio.volume = 1.0;
+          } else if (currentAudio) {
+            currentAudio.volume = Math.max(0, vol);
+          }
+        }, 250);
+      } else {
+        stopAudio();
+      }
+
+      // Automatically engage Bedtime Dim Mode if not already active
+      applyBedtimeDim(true);
+
+      if (audioStatusText) {
+        audioStatusText.textContent = 'Timer selesai. Selamat tidur nyenyak 🌙';
+      }
+    }
+
+    function toggleSleepTimer() {
+      if (sleepTimerMinutes === 0) {
+        sleepTimerMinutes = 15;
+      } else if (sleepTimerMinutes === 15) {
+        sleepTimerMinutes = 30;
+      } else {
+        sleepTimerMinutes = 0;
+      }
+
+      if (sleepTimerInterval) {
+        clearInterval(sleepTimerInterval);
+        sleepTimerInterval = null;
+      }
+
+      if (sleepTimerMinutes > 0) {
+        sleepTimerSecondsLeft = sleepTimerMinutes * 60;
+        updateSleepTimerUI();
+        sleepTimerInterval = setInterval(() => {
+          sleepTimerSecondsLeft--;
+          if (sleepTimerSecondsLeft <= 0) {
+            onSleepTimerEnd();
+          } else {
+            updateSleepTimerUI();
+          }
+        }, 1000);
+      } else {
+        sleepTimerSecondsLeft = 0;
+        updateSleepTimerUI();
+      }
+    }
+
+    if (sleepTimerBtn) {
+      sleepTimerBtn.addEventListener('click', toggleSleepTimer);
+    }
+
+    // Touch Swipe Gesture for Mobile & Tablet
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchEndX = 0;
+    let touchEndY = 0;
+    const swipeArea = document.getElementById('story-spread-article') || readerRoot;
+
+    if (swipeArea) {
+      swipeArea.addEventListener('touchstart', (e) => {
+        if (!e.changedTouches || e.changedTouches.length === 0) return;
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+      }, { passive: true });
+
+      swipeArea.addEventListener('touchend', (e) => {
+        if (!e.changedTouches || e.changedTouches.length === 0) return;
+        touchEndX = e.changedTouches[0].screenX;
+        touchEndY = e.changedTouches[0].screenY;
+        const deltaX = touchEndX - touchStartX;
+        const deltaY = touchEndY - touchStartY;
+        const minSwipeDistance = 45;
+
+        // Ensure horizontal swipe is dominant (not vertical scrolling)
+        if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) >= minSwipeDistance) {
+          if (deltaX < 0) {
+            // Swipe Left -> Next Page
+            if (currentStep <= totalSteps) {
+              goToStep(currentStep + 1);
+            }
+          } else {
+            // Swipe Right -> Prev Page
+            if (currentStep > 0) {
+              goToStep(currentStep - 1);
+            }
+          }
+        }
+      }, { passive: true });
+    }
+
+    // Bedtime Dim Mode (Warm Amber / Dark Night Theme)
+    const dimBtn = document.getElementById('dim-toggle-btn');
+    const dimBtnLand = document.getElementById('dim-toggle-btn-land');
+    const dimBtnIcon = document.getElementById('dim-btn-icon');
+    let isBedtimeDim = false;
+    try {
+      isBedtimeDim = localStorage.getItem('kisah_bedtime_dim') === 'true';
+    } catch (e) {}
+
+    function applyBedtimeDim(isDim) {
+      if (isDim) {
+        document.body.classList.add('bedtime-dim');
+        if (dimBtn) {
+          dimBtn.style.background = '#d97706';
+          dimBtn.style.color = '#fff';
+          dimBtn.style.borderColor = '#d97706';
+          dimBtn.title = 'Matikan Mode Redup';
+        }
+        if (dimBtnLand) {
+          dimBtnLand.style.background = '#d97706';
+          dimBtnLand.style.color = '#fff';
+          dimBtnLand.style.borderColor = '#d97706';
+          dimBtnLand.title = 'Matikan Mode Redup';
+        }
+        if (dimBtnIcon) dimBtnIcon.textContent = '☀️';
+      } else {
+        document.body.classList.remove('bedtime-dim');
+        if (dimBtn) {
+          dimBtn.style.background = '#faf8f5';
+          dimBtn.style.color = 'var(--ink)';
+          dimBtn.style.borderColor = 'var(--line)';
+          dimBtn.title = 'Mode Redup Pengantar Tidur (Layar Hangat)';
+        }
+        if (dimBtnLand) {
+          dimBtnLand.style.background = '#faf8f5';
+          dimBtnLand.style.color = 'var(--ink)';
+          dimBtnLand.style.borderColor = 'var(--line)';
+          dimBtnLand.title = 'Mode Redup Pengantar Tidur (Layar Hangat)';
+        }
+        if (dimBtnIcon) dimBtnIcon.textContent = '🌙';
+      }
+    }
+
+    applyBedtimeDim(isBedtimeDim);
+
+    function toggleBedtimeDim() {
+      isBedtimeDim = !isBedtimeDim;
+      try {
+        localStorage.setItem('kisah_bedtime_dim', isBedtimeDim ? 'true' : 'false');
+      } catch (e) {}
+      applyBedtimeDim(isBedtimeDim);
+    }
+
+    if (dimBtn) dimBtn.addEventListener('click', toggleBedtimeDim);
+    if (dimBtnLand) dimBtnLand.addEventListener('click', toggleBedtimeDim);
     modalReplay.addEventListener('click', () => {
       finishModal.style.display = 'none';
       goToStep(0);

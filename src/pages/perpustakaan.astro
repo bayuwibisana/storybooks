@@ -1,0 +1,893 @@
+---
+export const prerender = false;
+
+import { asc, eq } from 'drizzle-orm';
+import Layout from '../layouts/Layout.astro';
+import { db } from '../db/client';
+import { stories } from '../db/schema';
+import { readableStoryIds } from '../db/entitlements';
+import { getViewer } from '../lib/session';
+import { getStoryUrl } from '../lib/story-url';
+// Memoised on locals — the layout already paid for this.
+let viewer: any = { signedIn: false };
+let readable = new Set<string>();
+let rows: any[] = [];
+let lockedCount = 0;
+let payable: any[] = [];
+let loadError: string | null = null;
+
+try {
+  viewer = await getViewer(Astro);
+  readable = await readableStoryIds(db, viewer);
+
+  rows = await db
+    .select({
+      id: stories.id,
+      storyNumber: stories.storyNumber,
+      title: stories.title,
+      category: stories.category,
+      categoryLabel: stories.categoryLabel,
+      ageGroup: stories.ageGroup,
+      synopsis: stories.synopsis,
+      coverImage: stories.coverImage,
+      isFree: stories.isFree,
+    })
+    .from(stories)
+    .where(eq(stories.isPublished, true))
+    .orderBy(asc(stories.storyNumber));
+
+  lockedCount = rows.filter((s) => !readable.has(s.id)).length;
+  payable = rows.filter((s) => !s.isFree);
+} catch (err: any) {
+  console.error('[perpustakaan.astro] Data load error:', err);
+  loadError = err?.message || String(err);
+}
+---
+
+<Layout title="Perpustakaan — Kisah Krayon">
+  {loadError && (
+    <div class="db-error-alert" role="alert">
+      <strong class="db-error-title">Perhatian: Koneksi Database Sedang Diinisialisasi</strong>
+      <p class="db-error-msg">Aplikasi web belum dapat terhubung ke database. Pesan sistem:</p>
+      <code class="db-error-code">{loadError}</code>
+      <p class="db-error-hint">Pastikan <code>DATABASE_URL</code> sudah terkonfigurasi dengan benar di Cloudflare Dashboard.</p>
+    </div>
+  )}
+
+  <!-- Library Header & Access Status -->
+  <header class="library-header">
+    <div class="library-header-text">
+      <h1 class="library-title">Katalog Cerita Bergambar</h1>
+      <p class="library-subtitle">
+        Pilih kisah pengantar tidur favorit si kecil malam ini. Tersedia 3 cerita gratis tanpa batas, dan puluhan kisah menarik lainnya siap dibuka.
+      </p>
+    </div>
+    <div class="access-pill">
+      {viewer.signedIn
+        ? `Akses aktif: ${rows.length - lockedCount} dari ${rows.length} cerita`
+        : `Tersedia 3 cerita gratis siap baca tanpa daftar.`}
+    </div>
+  </header>
+
+  <!-- User Access Quick Banner -->
+  {!viewer.signedIn ? (
+    <div class="quick-banner banner-guest">
+      <div class="banner-info">
+        <strong>Ingin buka semua {payable.length} cerita terkunci?</strong>
+        <span>Mulai dari Rp 9.000 — sekali bayar tanpa langganan berulang, dapat dibaca selamanya.</span>
+      </div>
+      <div class="banner-btns">
+        <a href="/sign-up" class="btn-banner btn-primary">Daftar & Buka</a>
+        <a href="/sign-in" class="btn-banner btn-outline">Masuk</a>
+      </div>
+    </div>
+  ) : (viewer.storyCredits ?? 0) > 0 ? (
+    <div class="quick-banner banner-credits">
+      <div class="banner-info">
+        <strong>Kamu memiliki {viewer.storyCredits} kredit cerita aktif!</strong>
+        <span>Klik cerita bertanda "Buka (1 Kredit)" untuk langsung membuka akses permanen.</span>
+      </div>
+      <div class="banner-btns">
+        <a href="/akun" class="btn-banner btn-forest">Kelola Akun</a>
+      </div>
+    </div>
+  ) : lockedCount > 0 ? (
+    <div class="quick-banner banner-upgrade">
+      <div class="banner-info">
+        <strong>Buka {lockedCount} cerita lainnya untuk si kecil</strong>
+        <span>Paket cerita mulai Rp 9.000 untuk 10 cerita atau Rp 29.000 untuk paket lengkap selamanya.</span>
+      </div>
+      <div class="banner-btns">
+        <a href="/akun" class="btn-banner btn-primary">Lihat Pilihan Paket</a>
+      </div>
+    </div>
+  ) : null}
+
+  <!-- Discovery Toolbar: Search & Category Filter Chips -->
+  <section class="discovery-toolbar" aria-label="Filter dan Pencarian Cerita">
+    <div class="search-bar">
+      <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input
+        id="story-search"
+        type="text"
+        inputmode="search"
+        placeholder="Cari judul cerita atau nomor (misal: Barnaby, #5)..."
+        aria-label="Cari judul atau nomor cerita"
+        autocomplete="off"
+      />
+      <button id="clear-search" class="clear-btn" type="button" aria-label="Hapus pencarian">✕</button>
+    </div>
+
+    <div class="category-filter-row" role="tablist" aria-label="Kategori Cerita">
+      <button class="filter-chip active" role="tab" aria-selected="true" data-cat="all">Semua ({rows.length})</button>
+      <button class="filter-chip" role="tab" aria-selected="false" data-cat="tidur">Pengantar Tidur</button>
+      <button class="filter-chip" role="tab" aria-selected="false" data-cat="emosi">Empati & Emosi</button>
+      <button class="filter-chip" role="tab" aria-selected="false" data-cat="persahabatan">Persahabatan</button>
+      <button class="filter-chip" role="tab" aria-selected="false" data-cat="berbagi">Dapur & Berbagi</button>
+      <button class="filter-chip" role="tab" aria-selected="false" data-cat="petualangan">Petualangan</button>
+      <button class="filter-chip" role="tab" aria-selected="false" data-cat="logika">Logika & Sains</button>
+    </div>
+
+    <div class="results-meta">
+      <span id="results-count">Menampilkan <strong>{rows.length}</strong> cerita</span>
+    </div>
+  </section>
+
+  <!-- Empty Results State -->
+  <div id="no-results" class="empty-results-box" style="display:none" role="status">
+    <p class="empty-title">Tidak ada cerita yang cocok</p>
+    <p class="empty-desc">Coba gunakan kata kunci pencarian lain atau pilih kategori cerita lainnya.</p>
+    <button id="reset-filters" type="button" class="btn-reset">Tampilkan Semua Cerita</button>
+  </div>
+
+  <!-- Story Catalog Grid -->
+  <div id="story-grid" class="story-grid">
+    {rows.map((s) => {
+      const open = readable.has(s.id);
+      const targetUrl = getStoryUrl(s);
+      return (
+        <article
+          class="story-card"
+          data-category={s.category ?? ''}
+          data-title={s.title.toLowerCase()}
+          data-number={s.storyNumber.toString()}
+        >
+          <a href={targetUrl} class="card-cover-link" aria-label={`Buka buku cerita ${s.title}`}>
+            <div class="card-cover-container">
+              {s.coverImage ? (
+                <img
+                  src={`/${s.coverImage}`}
+                  alt={s.title}
+                  loading="lazy"
+                  width="400"
+                  height="300"
+                  class="card-cover-img"
+                />
+              ) : (
+                <div class="card-cover-fallback">
+                  <span>Kisah Krayon</span>
+                </div>
+              )}
+              <span class="chip-number">
+                #{s.storyNumber}
+              </span>
+              <span class={`chip-status ${s.isFree ? 'is-free' : open ? 'is-open' : 'is-locked'}`}>
+                {!open && !s.isFree && (
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right:0.25rem;vertical-align:-1px">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                  </svg>
+                )}
+                {s.isFree ? 'Gratis' : open ? 'Terbuka' : 'Terkunci'}
+              </span>
+            </div>
+          </a>
+
+          <div class="card-content">
+            <div class="card-meta-line">
+              <span class="card-category">{s.categoryLabel ?? ''}</span>
+              {s.ageGroup && (
+                <>
+                  <span class="card-meta-sep" aria-hidden="true">·</span>
+                  <span class="card-age">{s.ageGroup}</span>
+                </>
+              )}
+            </div>
+
+            <h2 class="card-heading">
+              <a href={targetUrl}>{s.title}</a>
+            </h2>
+
+            <p class="card-synopsis">
+              {s.synopsis}
+            </p>
+
+            <div class="card-action-bar">
+              {open ? (
+                <a href={targetUrl} class="btn-card-action btn-read">
+                  <span>Baca Sekarang</span>
+                  <span class="btn-arrow-icon" aria-hidden="true">→</span>
+                </a>
+              ) : !viewer.signedIn ? (
+                <a href="/sign-in" class="btn-card-action btn-signin">
+                  Masuk untuk Buka
+                </a>
+              ) : (viewer.storyCredits ?? 0) > 0 ? (
+                <a href={targetUrl} class="btn-card-action btn-credit">
+                  Buka (1 Kredit)
+                </a>
+              ) : (
+                <a href="/akun" class="btn-card-action btn-unlock">
+                  Pilih Paket Cerita
+                </a>
+              )}
+            </div>
+          </div>
+        </article>
+      );
+    })}
+  </div>
+</Layout>
+
+<script>
+  function setupLibraryCatalog() {
+    const searchInput = document.getElementById('story-search') as HTMLInputElement | null;
+    const clearBtn = document.getElementById('clear-search');
+    const chips = document.querySelectorAll<HTMLButtonElement>('.filter-chip');
+    const cards = document.querySelectorAll<HTMLElement>('.story-card');
+    const resultsCountEl = document.getElementById('results-count');
+    const noResultsEl = document.getElementById('no-results');
+    const resetBtn = document.getElementById('reset-filters');
+
+    if (!cards.length) return;
+
+    let activeCategory = 'all';
+    let searchQuery = '';
+
+    function applyFilter() {
+      let count = 0;
+      cards.forEach((card) => {
+        const cat = (card.dataset.category || '').toLowerCase();
+        const title = (card.dataset.title || '').toLowerCase();
+        const number = (card.dataset.number || '').trim();
+
+        const matchesCat = activeCategory === 'all' || cat.includes(activeCategory.toLowerCase());
+        const queryClean = searchQuery.replace('#', '').trim();
+        const matchesQuery = !searchQuery || title.includes(searchQuery) || number === queryClean;
+
+        if (matchesCat && matchesQuery) {
+          card.style.display = '';
+          count++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      if (resultsCountEl) {
+        resultsCountEl.innerHTML = `Menampilkan <strong>${count}</strong> dari ${cards.length} cerita`;
+      }
+
+      if (noResultsEl) {
+        noResultsEl.style.display = count === 0 ? 'block' : 'none';
+      }
+
+      if (clearBtn && searchInput) {
+        clearBtn.style.display = searchInput.value ? 'block' : 'none';
+      }
+    }
+
+    chips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        chips.forEach((c) => {
+          c.classList.remove('active');
+          c.setAttribute('aria-selected', 'false');
+        });
+        chip.classList.add('active');
+        chip.setAttribute('aria-selected', 'true');
+        activeCategory = chip.getAttribute('data-cat') || 'all';
+        applyFilter();
+      });
+    });
+
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        searchQuery = (e.target as HTMLInputElement).value.toLowerCase().trim();
+        applyFilter();
+      });
+
+      searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          searchInput.value = '';
+          searchQuery = '';
+          applyFilter();
+        }
+      });
+    }
+
+    if (clearBtn && searchInput) {
+      clearBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        searchQuery = '';
+        applyFilter();
+        searchInput.focus();
+      });
+    }
+
+    if (resetBtn && searchInput) {
+      resetBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        searchQuery = '';
+        chips.forEach((c) => {
+          c.classList.remove('active');
+          c.setAttribute('aria-selected', 'false');
+        });
+        const firstChip = document.querySelector<HTMLButtonElement>('.filter-chip[data-cat="all"]');
+        if (firstChip) {
+          firstChip.classList.add('active');
+          firstChip.setAttribute('aria-selected', 'true');
+        }
+        activeCategory = 'all';
+        applyFilter();
+      });
+    }
+  }
+
+  setupLibraryCatalog();
+  document.addEventListener('astro:page-load', setupLibraryCatalog);
+</script>
+
+<style>
+  /* Database Error Alert */
+  .db-error-alert {
+    background: #fff3cd;
+    border: 1px solid #ffeeba;
+    color: #856404;
+    padding: 1.25rem 1.5rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 1.75rem;
+  }
+  .db-error-title {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-size: 1rem;
+    font-weight: 800;
+  }
+  .db-error-msg {
+    margin: 0 0 0.5rem;
+    font-size: 0.88rem;
+  }
+  .db-error-code {
+    display: block;
+    background: #fff;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid #e2e8f0;
+    font-size: 0.82rem;
+    word-break: break-all;
+  }
+  .db-error-hint {
+    margin: 0.65rem 0 0;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
+  /* Library Header */
+  .library-header {
+    padding: 0.75rem 0 1.5rem;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .library-header-text {
+    max-width: 42rem;
+  }
+  .library-title {
+    font-size: 1.85rem;
+    font-weight: 900;
+    color: var(--ink);
+    margin: 0 0 0.4rem;
+    letter-spacing: -0.025em;
+    line-height: 1.25;
+  }
+  .library-subtitle {
+    margin: 0;
+    font-size: 0.94rem;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+  .access-pill {
+    background: var(--card-bg);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 0.4rem 0.85rem;
+    border-radius: var(--radius-full);
+    font-size: 0.82rem;
+    font-weight: 700;
+    box-shadow: var(--shadow-sm);
+    white-space: nowrap;
+  }
+
+  /* Quick Access Banner */
+  .quick-banner {
+    background: var(--card-bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    box-shadow: var(--shadow-sm);
+  }
+  .banner-guest {
+    border-left: 4px solid var(--clay);
+  }
+  .banner-credits {
+    background: #f4fbf7;
+    border-color: #bbf7d0;
+    border-left: 4px solid var(--forest);
+  }
+  .banner-upgrade {
+    background: #fffcf7;
+    border-color: #fed7aa;
+    border-left: 4px solid var(--amber);
+  }
+  .banner-info {
+    flex: 1 1 18rem;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .banner-info strong {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--ink);
+  }
+  .banner-info span {
+    font-size: 0.84rem;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  .banner-btns {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .btn-banner {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-weight: 800;
+    font-size: 0.82rem;
+    padding: 0.55rem 1rem;
+    border-radius: var(--radius-full);
+    transition: all 0.18s ease;
+    cursor: pointer;
+    min-height: 40px;
+    box-sizing: border-box;
+    white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--clay);
+    color: #ffffff;
+    border: none;
+  }
+  .btn-primary:hover {
+    background: var(--clay-hover);
+  }
+  .btn-forest {
+    background: var(--forest);
+    color: #ffffff;
+    border: none;
+  }
+  .btn-forest:hover {
+    background: var(--forest-hover);
+  }
+  .btn-outline {
+    background: var(--paper-subtle);
+    color: var(--ink);
+    border: 1px solid var(--line);
+  }
+
+  /* Discovery Toolbar */
+  .discovery-toolbar {
+    margin-bottom: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .search-bar {
+    position: relative;
+    max-width: 32rem;
+    width: 100%;
+  }
+  .search-icon {
+    position: absolute;
+    left: 0.95rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted-light);
+    pointer-events: none;
+  }
+  .search-bar input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.75rem 2.4rem 0.75rem 2.6rem;
+    font-size: 0.9rem;
+    font-family: inherit;
+    color: var(--ink);
+    background: var(--card-bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-full);
+    outline: none;
+    transition: all 0.18s ease;
+    min-height: 44px;
+  }
+  .search-bar input::-webkit-search-cancel-button,
+  .search-bar input::-webkit-search-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+    display: none;
+  }
+  .search-bar input:focus {
+    border-color: var(--clay);
+    box-shadow: 0 0 0 3px var(--clay-light);
+  }
+  .clear-btn {
+    position: absolute;
+    right: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 0.25rem 0.4rem;
+    border-radius: var(--radius-full);
+    display: none;
+  }
+  .clear-btn:hover {
+    color: var(--ink);
+  }
+
+  /* Category Filter Chips */
+  .category-filter-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.35rem;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .category-filter-row::-webkit-scrollbar {
+    display: none;
+  }
+  .filter-chip {
+    flex-shrink: 0;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--line);
+    background: var(--card-bg);
+    color: var(--muted);
+    font-size: 0.84rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .filter-chip:hover {
+    border-color: var(--clay);
+    color: var(--ink);
+    background: var(--paper-subtle);
+  }
+  .filter-chip.active {
+    background: var(--clay);
+    border-color: var(--clay);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(200, 90, 50, 0.25);
+  }
+
+  .results-meta {
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
+  /* Empty Results State */
+  .empty-results-box {
+    background: var(--card-bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 3rem 1.5rem;
+    text-align: center;
+    margin: 1.5rem 0 3rem;
+  }
+  .empty-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--ink);
+    margin: 0 0 0.5rem;
+  }
+  .empty-desc {
+    font-size: 0.88rem;
+    color: var(--muted);
+    margin: 0 0 1.25rem;
+  }
+  .btn-reset {
+    background: var(--paper-subtle);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 0.6rem 1.25rem;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: all 0.18s ease;
+  }
+  .btn-reset:hover {
+    border-color: var(--clay);
+    color: var(--clay);
+  }
+
+  /* Story Grid */
+  .story-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.35rem;
+  }
+
+  /* Story Card */
+  .story-card {
+    background: var(--card-bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-card);
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s ease;
+  }
+  .story-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-hover);
+    border-color: #ddd4c4;
+  }
+
+  /* Cover Link & Container */
+  .card-cover-link {
+    text-decoration: none;
+    display: block;
+    position: relative;
+  }
+  .card-cover-container {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    background: #ede6d8;
+    overflow: hidden;
+  }
+  .card-cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .story-card:hover .card-cover-img {
+    transform: scale(1.025);
+  }
+  .card-cover-fallback {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, #ede6d8, #ded3c0);
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--muted);
+  }
+
+  /* Cover Badges */
+  .chip-number {
+    position: absolute;
+    top: 0.7rem;
+    left: 0.7rem;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    color: var(--ink);
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--radius-full);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  .chip-status {
+    position: absolute;
+    top: 0.7rem;
+    right: 0.7rem;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 0.22rem 0.6rem;
+    border-radius: var(--radius-full);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: inline-flex;
+    align-items: center;
+  }
+  .chip-status.is-free {
+    background: var(--forest);
+    color: #ffffff;
+  }
+  .chip-status.is-open {
+    background: #1e3a8a;
+    color: #ffffff;
+  }
+  .chip-status.is-locked {
+    background: rgba(36, 34, 32, 0.88);
+    color: #ffffff;
+  }
+
+  /* Card Content */
+  .card-content {
+    padding: 1.1rem 1.15rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    flex: 1;
+  }
+  .card-meta-line {
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .card-category {
+    color: var(--clay);
+  }
+  .card-meta-sep {
+    color: var(--muted-light);
+  }
+  .card-age {
+    color: var(--muted);
+  }
+
+  .card-heading {
+    font-size: 1.05rem;
+    line-height: 1.35;
+    margin: 0.15rem 0 0.3rem;
+    font-weight: 800;
+    letter-spacing: -0.015em;
+  }
+  .card-heading a {
+    text-decoration: none;
+    color: var(--ink);
+    transition: color 0.15s ease;
+  }
+  .card-heading a:hover {
+    color: var(--clay);
+  }
+
+  .card-synopsis {
+    font-size: 0.84rem;
+    color: var(--muted);
+    line-height: 1.55;
+    margin: 0 0 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Card Action Bar */
+  .card-action-bar {
+    margin-top: auto;
+  }
+  .btn-card-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    text-align: center;
+    text-decoration: none;
+    font-weight: 800;
+    font-size: 0.85rem;
+    padding: 0.65rem 1rem;
+    border-radius: var(--radius-md);
+    transition: all 0.18s ease;
+    box-sizing: border-box;
+    min-height: 42px;
+  }
+  .btn-card-action:hover {
+    transform: translateY(-1px);
+  }
+
+  .btn-read {
+    background: var(--forest);
+    color: #ffffff;
+  }
+  .btn-read:hover {
+    background: var(--forest-hover);
+    box-shadow: 0 3px 10px rgba(47, 82, 67, 0.25);
+  }
+  .btn-arrow-icon {
+    transition: transform 0.18s ease;
+  }
+  .btn-read:hover .btn-arrow-icon {
+    transform: translateX(2px);
+  }
+
+  .btn-signin {
+    background: var(--paper-subtle);
+    color: var(--ink);
+    border: 1px solid var(--line);
+  }
+  .btn-signin:hover {
+    background: #eae3d5;
+    border-color: var(--muted-light);
+  }
+
+  .btn-credit {
+    background: var(--amber);
+    color: #ffffff;
+  }
+  .btn-credit:hover {
+    background: #b45309;
+    box-shadow: 0 3px 10px rgba(217, 119, 6, 0.25);
+  }
+
+  .btn-unlock {
+    background: var(--clay-light);
+    color: var(--clay);
+    border: 1px solid #fed7aa;
+  }
+  .btn-unlock:hover {
+    background: #f8ded4;
+    border-color: var(--clay);
+  }
+
+  /* Responsive Rules */
+  @media (max-width: 640px) {
+    .library-header {
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .library-title {
+      font-size: 1.6rem;
+    }
+    .quick-banner {
+      flex-direction: column;
+      align-items: stretch;
+      padding: 1rem;
+      gap: 0.85rem;
+    }
+    .banner-btns {
+      flex-direction: column;
+      width: 100%;
+    }
+    .btn-banner {
+      width: 100%;
+    }
+    .story-grid {
+      grid-template-columns: 1fr;
+      gap: 1.15rem;
+    }
+  }
+</style>

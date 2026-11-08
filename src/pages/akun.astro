@@ -6,7 +6,7 @@ import Layout from '../layouts/Layout.astro';
 import { db } from '../db/client';
 import { products, stories, storyGrants } from '../db/schema';
 import { getViewer } from '../lib/session';
-
+import { getStoryUrl } from '../lib/story-url';
 const viewer = await getViewer(Astro);
 
 // Fetch active products
@@ -94,7 +94,7 @@ if (viewer.userId && viewer.grantedStoryIds.size > 0) {
               <strong style="font-size:1rem;color:#242220">Paket Lengkap / Sahabat Aktif</strong>
             </div>
             <p style="margin:0;font-size:0.85rem;color:var(--muted);line-height:1.5">
-              Anda memiliki akses tanpa batas ke seluruh koleksi 36 cerita bergambar anak Kisah Krayon.
+              Anda memiliki akses tanpa batas ke seluruh koleksi 40 cerita bergambar anak Kisah Krayon.
             </p>
           </div>
         ) : viewer.storyCredits > 0 ? (
@@ -133,7 +133,7 @@ if (viewer.userId && viewer.grantedStoryIds.size > 0) {
           <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(14rem, 1fr));gap:0.75rem">
             {grantedStories.map((s) => (
               <a
-                href={`/baca/${s.id}`}
+                href={getStoryUrl(s)}
                 style="display:flex;align-items:center;gap:0.75rem;padding:0.6rem 0.75rem;background:#fff;border:1px solid var(--line);border-radius:0.75rem;text-decoration:none;color:var(--ink)"
               >
                 <img
@@ -153,19 +153,23 @@ if (viewer.userId && viewer.grantedStoryIds.size > 0) {
     </div>
 
     <!-- Pricing / Packages Section -->
-    <div style="display:flex;flex-direction:column;gap:1rem">
+    <div style="display:flex;flex-direction:column;gap:1.25rem">
       <div>
+        <div style="display:inline-flex;align-items:center;gap:0.4rem;background:#fef3eb;color:#c85a32;font-size:0.75rem;font-weight:800;padding:0.25rem 0.75rem;border-radius:999px;margin-bottom:0.5rem">
+          <span>✨</span> <span>SEKALI BAYAR SEUMUR HIDUP • TANPA BIAYA BULANAN</span>
+        </div>
         <h2 style="font-size:1.35rem;margin:0 0 0.35rem;letter-spacing:-0.02em">
-          {viewer.highestTier ? 'Pilihan Upgrade Paket' : 'Pilihan Paket Kisah Krayon'}
+          {viewer.highestTier ? 'Pilihan Upgrade Paket Cerita' : 'Pilihan Paket Kisah Krayon'}
         </h2>
         <p style="margin:0;font-size:0.85rem;color:var(--muted)">
-          Sekali bayar, akses permanen tanpa biaya langganan bulanan.
+          Satu buku fisik anak di toko buku seharga Rp 85.000 hanya untuk 1 cerita. Di sini, buka akses dongeng pengantar tidur berkualitas mulai Rp 15.000 selamanya.
         </p>
       </div>
 
-      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(15rem, 1fr));gap:1rem">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(15.5rem, 1fr));gap:1.25rem">
         {(upgradeProducts.length > 0 ? upgradeProducts : baseProducts).map((prod) => {
-          const isHighlight = prod.slug === 'lengkap' || prod.slug.includes('lengkap');
+          const isSahabat = prod.tier === 'sahabat';
+          const isLengkap = prod.tier === 'lengkap';
           const formattedPrice = new Intl.NumberFormat('id-ID', {
             style: 'currency',
             currency: 'IDR',
@@ -174,52 +178,74 @@ if (viewer.userId && viewer.grantedStoryIds.size > 0) {
 
           return (
             <div
-              style={`background:#fff;border:${isHighlight ? '2px solid #c85a32' : '1px solid var(--line)'};border-radius:1.25rem;padding:1.25rem;display:flex;flex-direction:column;gap:1rem;position:relative;box-shadow:0 4px 12px rgba(36,34,32,0.03)`}
+              style={`background:${isSahabat ? '#fffcf9' : '#fff'};border:${isSahabat ? '2px solid #c85a32' : '1px solid var(--line)'};border-radius:1.25rem;padding:1.4rem;display:flex;flex-direction:column;gap:1rem;position:relative;box-shadow:${isSahabat ? '0 8px 24px rgba(200,90,50,0.14)' : '0 4px 12px rgba(36,34,32,0.03)'};transform:${isSahabat ? 'translateY(-2px)' : 'none'};transition:all 0.2s ease`}
             >
-              {isHighlight && (
-                <span style="position:absolute;top:-0.65rem;right:1rem;background:#c85a32;color:#fff;font-size:0.65rem;font-weight:900;padding:0.2rem 0.6rem;border-radius:999px;letter-spacing:0.04em">
-                  PALING POPULER
+              {isSahabat && (
+                <span style="position:absolute;top:-0.7rem;left:50%;transform:translateX(-50%);background:#c85a32;color:#fff;font-size:0.68rem;font-weight:900;padding:0.25rem 0.8rem;border-radius:999px;letter-spacing:0.04em;white-space:nowrap;box-shadow:0 2px 8px rgba(200,90,50,0.3)">
+                  ★ PILIHAN TERBAIK KELUARGA
+                </span>
+              )}
+
+              {isLengkap && !isSahabat && (
+                <span style="position:absolute;top:-0.65rem;right:1rem;background:#66625c;color:#fff;font-size:0.65rem;font-weight:800;padding:0.2rem 0.6rem;border-radius:999px;letter-spacing:0.02em">
+                  BATCH 1 SAJA
                 </span>
               )}
 
               <div>
-                <strong style="display:block;font-size:1rem;margin-bottom:0.25rem">{prod.name}</strong>
-                <span style="font-size:1.4rem;font-weight:900;color:#242220;display:block">
-                  {formattedPrice}
-                </span>
-                <span style="font-size:0.75rem;color:var(--muted)">Sekali bayar</span>
+                <strong style="display:block;font-size:1.05rem;margin-bottom:0.35rem;color:#242220">{prod.name}</strong>
+                <div style="display:flex;align-items:baseline;gap:0.35rem">
+                  <span style={`font-size:1.45rem;font-weight:900;color:${isSahabat ? '#c85a32' : '#242220'}`}>
+                    {formattedPrice}
+                  </span>
+                  <span style="font-size:0.75rem;color:var(--muted)">/ sekali bayar</span>
+                </div>
+                {isSahabat && (
+                  <span style="display:inline-block;margin-top:0.35rem;font-size:0.72rem;font-weight:700;color:#2f5243;background:#eef7f2;padding:0.18rem 0.55rem;border-radius:0.4rem">
+                    Cerita baru bertambah tiap minggu • Sekali bayar selamanya
+                  </span>
+                )}
               </div>
 
-              <ul style="margin:0;padding-left:1.1rem;font-size:0.8rem;line-height:1.6;color:var(--muted);display:flex;flex-direction:column;gap:0.35rem">
-                {prod.scopeKind === 'all_access' ? (
+              <ul style="margin:0;padding-left:1.1rem;font-size:0.82rem;line-height:1.6;color:#4a4640;display:flex;flex-direction:column;gap:0.4rem">
+                {prod.tier === 'sahabat' ? (
                   <>
-                    <li>Akses seluruh 36 cerita bergambar</li>
+                    <li><strong style="color:#242220">Semua Cerita Saat Ini + Cerita Baru Tiap Minggu Selamanya</strong></li>
+                    <li><strong style="color:#242220">Audio Narasi Lengkap Lembut</strong> pengantar tidur</li>
+                    <li><strong style="color:#242220">100% Bebas Iklan & Notifikasi</strong> lingkungan aman anak</li>
+                    <li>Teks dwibahasa (ID/EN) & pemandu obrolan hati</li>
+                    <li>Sekali bayar seumur hidup tanpa tagihan berulang</li>
+                  </>
+                ) : prod.tier === 'lengkap' ? (
+                  <>
+                    <li><strong style="color:#242220">Akses 40 Cerita Bergambar yang Sudah Rilis</strong></li>
                     <li>Teks bilingual (Indonesia & Inggris)</li>
                     <li>Panduan interaktif co-reading anak</li>
-                    {prod.tier === 'sahabat' && <li>Gratis pembaruan cerita baru selamanya</li>}
+                    <li>Audio narasi pengantar tidur yang tersedia</li>
+                    <li style="color:var(--muted);font-size:0.78rem"><em>• Cerita baru mingguan tidak termasuk (hanya di Paket Sahabat)</em></li>
                   </>
                 ) : (
                   <>
-                    <li>Bebas pilih {prod.scopeCount} cerita favorit</li>
+                    <li><strong style="color:#242220">Bebas pilih {prod.scopeCount} cerita favorit</strong> si kecil</li>
                     <li>Kredit tidak memiliki masa kedaluwarsa</li>
                     <li>Teks bilingual (Indonesia & Inggris)</li>
-                    <li>Bisa di-upgrade kapan saja</li>
+                    <li>Dapat di-upgrade ke Paket Sahabat kapan saja</li>
                   </>
                 )}
               </ul>
 
-              <div style="margin-top:auto;padding-top:0.5rem">
+              <div style="margin-top:auto;padding-top:0.75rem">
                 {prod.lynkCheckoutUrl ? (
                   <a
                     href={prod.lynkCheckoutUrl}
-                    style={`display:block;text-align:center;text-decoration:none;font-weight:800;font-size:0.85rem;padding:0.65rem;border-radius:0.75rem;background:${isHighlight ? '#c85a32' : '#242220'};color:#fff`}
+                    style={`display:block;text-align:center;text-decoration:none;font-weight:800;font-size:0.85rem;padding:0.75rem 1rem;border-radius:0.75rem;background:${isSahabat ? '#c85a32' : '#242220'};color:#fff;box-shadow:${isSahabat ? '0 4px 12px rgba(200,90,50,0.25)' : 'none'}`}
                   >
-                    Beli Paket
+                    {isSahabat ? 'Ambil Paket Sahabat →' : 'Beli Paket'}
                   </a>
                 ) : (
                   <button
                     disabled
-                    style="width:100%;text-align:center;font-weight:700;font-size:0.8rem;padding:0.65rem;border-radius:0.75rem;background:#f0ece2;color:var(--muted);border:none;cursor:not-allowed"
+                    style="width:100%;text-align:center;font-weight:700;font-size:0.8rem;padding:0.7rem;border-radius:0.75rem;background:#f0ece2;color:var(--muted);border:none;cursor:not-allowed"
                     title="Link checkout Lynk segera dihubungkan"
                   >
                     Segera Hadir di Lynk

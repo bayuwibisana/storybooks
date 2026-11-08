@@ -4,69 +4,221 @@ import { getViewer } from '../lib/session';
 
 interface Props {
   title?: string;
+  description?: string;
+  image?: string;
+  type?: 'website' | 'article' | 'book';
+  canonicalUrl?: string;
+  isReader?: boolean;
 }
-const { title = 'Kisah Krayon' } = Astro.props;
+const {
+  title = 'Kisah Krayon — Buku Cerita Pengantar Tidur Anak',
+  description = 'Koleksi buku cerita anak bergambar dengan ilustrasi krayon lembut dan panduan obrolan hati, membantu anak terlelap tenang dan penuh kasih.',
+  image = '/covers/story1_cover.jpg',
+  type = 'website',
+  canonicalUrl,
+  isReader = false,
+} = Astro.props;
+
 // Resolves (and memoises) the viewer, creating the DB row on first sight.
 const viewer = await getViewer(Astro);
+const currentPath = Astro.url.pathname;
+const absoluteImageUrl = image.startsWith('http') ? image : new URL(image, Astro.url).href;
+const pageUrl = canonicalUrl || Astro.url.href;
 ---
-
 <!doctype html>
 <html lang="id">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
+    <meta name="title" content={title} />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#c85a32" />
+    <link rel="canonical" href={pageUrl} />
+
+    <!-- Schema.org Structured Data (JSON-LD) -->
+    <script type="application/ld+json" set:html={JSON.stringify(
+      type === 'book'
+        ? {
+            '@context': 'https://schema.org',
+            '@type': 'Book',
+            'name': title,
+            'description': description,
+            'image': absoluteImageUrl,
+            'url': pageUrl,
+            'inLanguage': ['id', 'en'],
+            'author': {
+              '@type': 'Organization',
+              'name': 'Kisah Krayon',
+              'url': 'https://storybooks.bayuwibisana15.workers.dev'
+            },
+            'publisher': {
+              '@type': 'Organization',
+              'name': 'Kisah Krayon',
+              'logo': {
+                '@type': 'ImageObject',
+                'url': 'https://storybooks.bayuwibisana15.workers.dev/favicon.svg'
+              }
+            },
+            'audience': {
+              '@type': 'Audience',
+              'audienceType': 'Anak usia 2-6 tahun'
+            },
+            'genre': 'Cerita Bergambar Pengantar Tidur Anak'
+          }
+        : {
+            '@context': 'https://schema.org',
+            '@type': 'WebSite',
+            'name': 'Kisah Krayon',
+            'url': 'https://storybooks.bayuwibisana15.workers.dev',
+            'description': description,
+            'inLanguage': 'id-ID'
+          }
+    )} />
+    <!-- Favicon & PWA -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Kisah Krayon" />
+
+    <!-- Open Graph / WhatsApp / Facebook -->
+    <meta property="og:type" content={type} />
+    <meta property="og:url" content={pageUrl} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={absoluteImageUrl} />
+    <meta property="og:site_name" content="Kisah Krayon" />
+    <meta property="og:locale" content="id_ID" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content={pageUrl} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={absoluteImageUrl} />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
     <style>
       :root {
         --paper: #f7f3e9;
+        --paper-subtle: #faf6ed;
+        --card-bg: #ffffff;
         --ink: #242220;
+        --ink-light: #44403c;
         --muted: #66625c;
+        --muted-light: #8c877e;
         --line: #e8e2d5;
+        --line-subtle: #f0ece2;
         --clay: #c85a32;
+        --clay-hover: #b34a24;
+        --clay-light: #fbeee8;
+        --forest: #2f5243;
+        --forest-hover: #244135;
+        --forest-light: #eef7f2;
+        --amber: #d97706;
+        --amber-light: #fef3c7;
+        --radius-sm: 0.5rem;
+        --radius-md: 0.85rem;
+        --radius-lg: 1.25rem;
+        --radius-full: 9999px;
+        --shadow-sm: 0 1px 3px rgba(36, 34, 32, 0.04);
+        --shadow-card: 0 4px 16px rgba(36, 34, 32, 0.05);
+        --shadow-hover: 0 10px 28px rgba(36, 34, 32, 0.08);
       }
       * { box-sizing: border-box; }
+      html, body {
+        overflow-x: hidden;
+        max-width: 100%;
+      }
       body {
         margin: 0;
         background: var(--paper);
         color: var(--ink);
         font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+        -webkit-tap-highlight-color: transparent;
       }
       header {
         position: sticky;
         top: 0;
-        z-index: 10;
+        z-index: 50;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 1rem;
-        padding: 0.75rem 1.25rem;
-        background: rgba(247, 243, 233, 0.92);
-        backdrop-filter: blur(8px);
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        background: rgba(247, 243, 233, 0.94);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         border-bottom: 1px solid var(--line);
       }
       .brand {
         display: flex;
         align-items: center;
-        gap: 0.6rem;
+        gap: 0.5rem;
         font-weight: 800;
         letter-spacing: -0.01em;
         text-decoration: none;
         color: inherit;
+        white-space: nowrap;
       }
       .brand span.mark {
         display: grid;
         place-items: center;
-        width: 2.25rem;
-        height: 2.25rem;
-        border-radius: 0.9rem;
+        width: 2.1rem;
+        height: 2.1rem;
+        border-radius: 0.8rem;
         background: var(--clay);
         color: #fff;
         transform: rotate(-3deg);
+        font-size: 1.05rem;
       }
-      nav { display: flex; align-items: center; gap: 0.75rem; font-size: 0.8rem; }
-      nav a { color: var(--muted); text-decoration: none; font-weight: 700; }
-      nav a:hover { color: var(--ink); }
-      main { max-width: 72rem; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; }
+      nav {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 0.82rem;
+      }
+      nav a {
+        color: var(--muted);
+        text-decoration: none;
+        font-weight: 700;
+        white-space: nowrap;
+        transition: all 0.15s ease;
+        padding: 0.25rem 0.5rem;
+        border-radius: var(--radius-full);
+      }
+      nav a:hover {
+        color: var(--ink);
+      }
+      nav a.is-active {
+        color: var(--ink);
+        background: rgba(36, 34, 32, 0.06);
+      }
+      @media (max-width: 600px) {
+        header {
+          padding: 0.65rem 0.85rem;
+          gap: 0.5rem;
+        }
+        .brand span.brand-text {
+          display: none;
+        }
+        nav {
+          gap: 0.25rem;
+          font-size: 0.78rem;
+        }
+        nav a {
+          padding: 0.2rem 0.4rem;
+        }
+        main {
+          padding: 0.75rem 0.65rem 3rem;
+        }
+      }
+      main { max-width: 72rem; margin: 0 auto; padding: 1.25rem 1rem 4rem; }
       .status {
         font-size: 0.75rem;
         color: var(--muted);
@@ -76,17 +228,65 @@ const viewer = await getViewer(Astro);
         padding: 0.25rem 0.7rem;
         font-weight: 700;
       }
+
+      /* Bedtime Dim Mode (Dark Espresso Warm Theme) */
+      body.bedtime-dim {
+        background-color: #161412 !important;
+        color: #e7e0d3 !important;
+      }
+      body.bedtime-dim header {
+        background: rgba(22, 20, 18, 0.96) !important;
+        border-bottom-color: #2e2925 !important;
+      }
+      body.bedtime-dim .brand,
+      body.bedtime-dim nav a {
+        color: #e7e0d3 !important;
+      }
+      body.bedtime-dim nav a:hover {
+        color: #fff !important;
+      }
+      body.bedtime-dim nav a.is-active {
+        background: rgba(255, 255, 255, 0.12) !important;
+        color: #fff !important;
+      }
+      body.bedtime-dim .status {
+        background: #25201d !important;
+        border-color: #38332e !important;
+        color: #e7e0d3 !important;
+      }
+
+      /* Reader-Specific Layout Rules (Clean, Immersive, Edge-to-Edge) */
+      @media (max-width: 768px) {
+        body.is-reader-layout header {
+          display: none !important;
+        }
+        body.is-reader-layout main {
+          padding: 0.35rem 0.35rem 3rem !important;
+          max-width: 100% !important;
+        }
+      }
+      @media (orientation: landscape) and (max-height: 540px) {
+        body.is-reader-layout header {
+          display: none !important;
+        }
+        body.is-reader-layout main {
+          padding: 0 !important;
+          max-width: 100vw !important;
+          overflow: hidden !important;
+        }
+      }
     </style>
   </head>
-  <body>
+  <body class={isReader ? 'is-reader-layout' : undefined}>
     <header>
-      <a class="brand" href="/">
+      <a class="brand" href="/" title="Kisah Krayon — Beranda">
         <span class="mark">🖍️</span>
-        <span>Kisah Krayon</span>
+        <span class="brand-text">Kisah Krayon</span>
       </a>
       <nav>
-        <a href="/">Perpustakaan</a>
-        <a href="/akun">Paket Saya</a>
+        <a href="/" class={currentPath === '/' ? 'is-active' : ''}>Beranda</a>
+        <a href="/perpustakaan" class={currentPath === '/perpustakaan' ? 'is-active' : ''}>Perpustakaan</a>
+        <a href="/akun" class={currentPath === '/akun' ? 'is-active' : ''}>Paket Saya</a>
         <Show when="signed-out">
           <a href="/sign-in">Masuk</a>
         </Show>
@@ -95,7 +295,7 @@ const viewer = await getViewer(Astro);
         </Show>
       </nav>
     </header>
-    {viewer.signedIn && (
+    {viewer.signedIn && !isReader && (
       <div style="max-width:72rem;margin:0.75rem auto 0;padding:0 1.25rem;display:flex;gap:0.5rem;flex-wrap:wrap">
         <span class="status">
           {viewer.hasAllAccess
