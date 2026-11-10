@@ -27,16 +27,16 @@ def pcm_to_wav(pcm_bytes, wav_path, sample_rate=24000):
         wav_file.writeframes(pcm_bytes)
 
 class GeminiKeyPool:
-    def __init__(self, preferred_env="GEMINI_API_KEY_STF"):
+    def __init__(self, preferred_env="GEMINI_API_KEY_04"):
         load_env()
         candidate_names = [
             preferred_env,
+            "GEMINI_API_KEY_04",
+            "GEMINI_API_KEY_97",
+            "GEMINI_API_KEY_MAILPIT",
+            "GEMINI_API_KEY_SIS",
             "GEMINI_API_KEY_STF",
             "GEMINI_API_KEY",
-            "GEMINI_API_KEY_SIS",
-            "GEMINI_API_KEY_MAILPIT",
-            "GEMINI_API_KEY_97",
-            "GEMINI_API_KEY_04",
         ]
         seen = set()
         self.keys = []
@@ -71,6 +71,14 @@ def generate_tts_with_retry(key_pool, text, model=STRICT_TTS_MODEL, voice_name="
     audio resolution, and cadence across all 105 picture books.
     Voice: 'Despina' (female) or 'Enceladus' (male).
     """
+    safety_settings = [
+        types.SafetySetting(category=types.HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold=types.HarmBlockThreshold.BLOCK_NONE),
+        types.SafetySetting(category=types.HarmCategory.HARM_CATEGORY_HARASSMENT, threshold=types.HarmBlockThreshold.BLOCK_NONE),
+        types.SafetySetting(category=types.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold=types.HarmBlockThreshold.BLOCK_NONE),
+        types.SafetySetting(category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold=types.HarmBlockThreshold.BLOCK_NONE),
+        types.SafetySetting(category=types.HarmCategory.HARM_CATEGORY_CIVIC_INTEGRITY, threshold=types.HarmBlockThreshold.BLOCK_NONE),
+    ]
+
     config = types.GenerateContentConfig(
         response_modalities=["AUDIO"],
         speech_config=types.SpeechConfig(
@@ -79,7 +87,8 @@ def generate_tts_with_retry(key_pool, text, model=STRICT_TTS_MODEL, voice_name="
                     voice_name=voice_name
                 )
             )
-        )
+        ),
+        safety_settings=safety_settings
     )
 
     for attempt in range(max_retries):
@@ -89,6 +98,9 @@ def generate_tts_with_retry(key_pool, text, model=STRICT_TTS_MODEL, voice_name="
                 contents=text,
                 config=config
             )
+            if not response.candidates or not response.candidates[0].content:
+                finish_reason = response.candidates[0].finish_reason if response.candidates else "NO_CANDIDATE"
+                raise ValueError(f"No content returned in response. Finish reason: {finish_reason}")
             part = response.candidates[0].content.parts[0]
             if part.inline_data and part.inline_data.data:
                 return part.inline_data.data

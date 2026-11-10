@@ -4475,7 +4475,8 @@
         "textEn": "Mimi fluttered her soft brown wings, circling gracefully while chirping gently. Mimi knew the secret: there was no monster inside the cave, it was simply the reflection of sound!",
         "quote": "'Ketakutan akan hilang saat pemahaman dan pengetahuan hadir menerangi hati.'",
         "coReading": "💡 Tanya si Kecil: Mimi tampak tenang dan senang. Menurutmu apakah Faris perlu takut?",
-        "image": "images/story34_page4.jpg"
+        "image": "images/story34_page4.jpg",
+        "audio": "audio/story34/page_4.wav"
       },
       {
         "number": 5,
@@ -4485,7 +4486,8 @@
         "textEn": "Faris smiled as he remembered his grandfather's teaching. 'Our voice travels in invisible waves. When it hits hard stone walls, the sound bounces right back to our ears!'",
         "quote": "'Gema adalah hadiah dari dinding batu yang mengembalikan suara kita dengan ramah.'",
         "coReading": "💡 Tanya si Kecil: Seperti bola karet yang dilempar ke tembok... suaranya memantul kembali kan?",
-        "image": "images/story34_page5.jpg"
+        "image": "images/story34_page5.jpg",
+        "audio": "audio/story34/page_5.wav"
       },
       {
         "number": 6,
@@ -4495,17 +4497,19 @@
         "textEn": "Faris tried singing, 'La-la-la!' The cave walls harmonized back with sweet repeating echoes, 'La-la-la... la-la-la!' Faris laughed heartily at his duet with the ancient stone walls.",
         "quote": "'Kegembiraan yang kita kirimkan ke alam akan kembali kepada kita berlipat ganda.'",
         "coReading": "💡 Tanya si Kecil: Coba kamu tirukan suara gema: 'La-la-la... la-la-la!'",
-        "image": "images/story34_page6.jpg"
+        "image": "images/story34_page6.jpg",
+        "audio": "audio/story34/page_6.wav"
       },
       {
         "number": 7,
         "title": "Bisikan Lembut yang Redup",
         "titleEn": "A Gentle Soft Whisper",
-        "textId": "Kali ini Faris mencoba berbisik pelan, 'Selamat pagi.' Namun tidak ada gema yang terdengar. Bisikan yang terlalu pelan diserap oleh lumut dan udara sebelum sempat memantul dari dinding batu.",
+        "textId": "Kali ini Faris mencoba berbisik pelan mengucapkan selamat pagi. Namun tidak ada suara gema yang terdengar. Suara yang teramat lembut memudar di udara sebelum sempat memantul dari dinding batu.",
         "textEn": "This time Faris tried whispering softly, 'Good morning.' But no echo returned. A gentle whisper is absorbed by the soft moss and air before it can bounce off the distant stone.",
         "quote": "'Kelembutan membawa ketenangan yang meneduhkan seluruh penjuru lembah.'",
         "coReading": "💡 Tanya si Kecil: Kenapa ya kalau berbisik pelan tidak ada gemanya?",
-        "image": "images/story34_page7.jpg"
+        "image": "images/story34_page7.jpg",
+        "audio": "audio/story34/page_7.wav"
       },
       {
         "number": 8,
@@ -4515,7 +4519,8 @@
         "textEn": "Faris cupped his hands around his mouth and shouted warmly, 'I love my friend!' The cave echo repeated the words with immense warmth, as if the whole valley embraced them both.",
         "quote": "'Kata-kata penuh kasih adalah gema terindah yang selalu dirindukan bumi.'",
         "coReading": "💡 Tanya si Kecil: Coba peluk orang di sampingmu dan ucapkan kata sayang yang manis.",
-        "image": "images/story34_page8.jpg"
+        "image": "images/story34_page8.jpg",
+        "audio": "audio/story34/page_8.wav"
       },
       {
         "number": 9,
@@ -4525,7 +4530,8 @@
         "textEn": "The twilight sky turned deep violet-rose. Outside the cave mouth, Faris lit a warm lantern in front of his little tent. Mimi hung cozily from a leafy branch, ready to enjoy the serene night.",
         "quote": "'Cahaya hangat di kala senja membawa rasa aman dan damai di hati.'",
         "coReading": "💡 Tanya si Kecil: Lihat nyala lentera yang tenang itu... hangat sekali ya.",
-        "image": "images/story34_page9.jpg"
+        "image": "images/story34_page9.jpg",
+        "audio": "audio/story34/page_9.wav"
       },
       {
         "number": 10,
@@ -4535,7 +4541,8 @@
         "textEn": "Inside his soft sleeping bag, Faris closed his eyes peacefully. The echoes were now silent, replaced only by the gentle night breeze caressing the limestone valley. Goodnight, little explorer, sleep in sweetest dreams.",
         "quote": "'Malam yang sunyi adalah nyanyian tidur termanis yang dipersembahkan alam.'",
         "coReading": "💡 Tanya si Kecil: Tarik napas perlahan... hembuskan. Selamat tidur nyenyak sayang, mimpi indah ya.",
-        "image": "images/story34_page10.jpg"
+        "image": "images/story34_page10.jpg",
+        "audio": "audio/story34/page_10.wav"
       }
     ],
     "legacyId": "story-029-logika",
@@ -4564,7 +4571,8 @@
         "textEn": "Wearing her favorite straw hat, Sari walked lightly up the green hill with Si Putih, a curly-furred white kid goat who hopped playfully beside her.",
         "quote": "'Udara pagi di bukit hijau selalu membawa kesegaran bagi jiwa yang gembira.'",
         "coReading": "💡 Tanya si Kecil: Pernahkah kamu melihat anak kambing kecil yang lucu berlari di rumput?",
-        "image": "images/story35_page1.jpg"
+        "image": "images/story35_page1.jpg",
+        "audio": "audio/story35/page_1.wav"
       },
       {
         "number": 2,
@@ -4574,7 +4582,8 @@
         "textEn": "'Mother told us to return home at noon for lunch, but we don't have a wristwatch!' Sari whispered, looking across the vast, peaceful meadow.",
         "quote": "'Alam semesta adalah jam raksasa yang berdetak dengan sangat teratur.'",
         "coReading": "💡 Tanya si Kecil: Menurutmu bagaimana cara mengetahui waktu jika kita tidak memakai jam tangan?",
-        "image": "images/story35_page2.jpg"
+        "image": "images/story35_page2.jpg",
+        "audio": "audio/story35/page_2.wav"
       },
       {
         "number": 3,
@@ -4584,7 +4593,8 @@
         "textEn": "Sari smiled as she remembered her grandfather's trick. She picked a straight wooden stick and planted it firmly upright on an open, sunlit patch of ground.",
         "quote": "'Benda yang paling sederhana bisa menjadi alat paling berharga di tangan yang bijak.'",
         "coReading": "💡 Tanya si Kecil: Coba berdiri tegak lurus seperti ranting kayu yang ditancapkan Sari!",
-        "image": "images/story35_page3.jpg"
+        "image": "images/story35_page3.jpg",
+        "audio": "audio/story35/page_3.wav"
       },
       {
         "number": 4,
@@ -4594,7 +4604,8 @@
         "textEn": "Because the sun was still low in the eastern sky, the stick cast a long, slender black shadow pointing west. Sari placed a round white pebble right at the tip of the shadow.",
         "quote": "'Saat mentari baru terbit, bayangan kita membentang panjang menyapa bumi.'",
         "coReading": "💡 Tanya si Kecil: Mengapa bayangan di pagi hari bisa sangat panjang ya?",
-        "image": "images/story35_page4.jpg"
+        "image": "images/story35_page4.jpg",
+        "audio": "audio/story35/page_4.wav"
       },
       {
         "number": 5,
@@ -4604,7 +4615,8 @@
         "textEn": "While waiting, Sari wove a garland of yellow daisies for Si Putih. Every now and then, Si Putih sniffed the marker stone and bleated softly, 'Baaah!'",
         "quote": "'Kesabaran membuat waktu berlalu dengan rasa manis dan kehangatan.'",
         "coReading": "💡 Tanya si Kecil: Cantik sekali mahkota bunganya! Warna bunga apa yang paling kamu sukai?",
-        "image": "images/story35_page5.jpg"
+        "image": "images/story35_page5.jpg",
+        "audio": "audio/story35/page_5.wav"
       },
       {
         "number": 6,
@@ -4614,7 +4626,8 @@
         "textEn": "The sun climbed higher into the sky. When Sari checked again, the stick's shadow had shifted away from the first white stone and was becoming noticeably shorter!",
         "quote": "'Pergerakan bayangan membuktikan bahwa mentari terus berjalan di angkasa.'",
         "coReading": "💡 Tanya si Kecil: Bayangannya bergeser dan memendek! Ke mana arah matahari bergerak?",
-        "image": "images/story35_page6.jpg"
+        "image": "images/story35_page6.jpg",
+        "audio": "audio/story35/page_6.wav"
       },
       {
         "number": 7,
@@ -4624,7 +4637,8 @@
         "textEn": "Right when the sun reached directly overhead, the stick's shadow became tiny and short near its base. 'Noon has arrived!' Sari cheered happily, hugging Si Putih.",
         "quote": "'Saat mentari di puncak tertinggi, bayangan beristirahat paling dekat di bawah kaki kita.'",
         "coReading": "💡 Tanya si Kecil: Saat siang hari panas, bayangan kita mengecil di bawah kaki kan?",
-        "image": "images/story35_page7.jpg"
+        "image": "images/story35_page7.jpg",
+        "audio": "audio/story35/page_7.wav"
       },
       {
         "number": 8,
@@ -4634,7 +4648,8 @@
         "textEn": "Sari and Si Putih reached the cottage porch right on time. Mother smiled proudly and served a warm, fragrant bowl of sweet corn porridge for Sari.",
         "quote": "'Menghargai waktu adalah wujud kasih sayang kepada keluarga di rumah.'",
         "coReading": "💡 Tanya si Kecil: Mmm... bubur jagung hangat! Enak sekali makan siang bersama keluarga.",
-        "image": "images/story35_page8.jpg"
+        "image": "images/story35_page8.jpg",
+        "audio": "audio/story35/page_8.wav"
       },
       {
         "number": 9,
@@ -4644,7 +4659,8 @@
         "textEn": "As evening approached, shadows stretched long once more towards the east as the sun set. The golden sky melted into peaceful shades of apricot and dusty rose.",
         "quote": "'Matahari yang terbenam adalah salam perpisahan yang lembut sebelum malam tiba.'",
         "coReading": "💡 Tanya si Kecil: Lihat langit senja yang indah... saatnya bersiap untuk istirahat malam.",
-        "image": "images/story35_page9.jpg"
+        "image": "images/story35_page9.jpg",
+        "audio": "audio/story35/page_9.wav"
       },
       {
         "number": 10,
@@ -4654,10 +4670,12 @@
         "textEn": "Inside her cozy bedroom, Sari slept soundly under a soft yellow knit blanket. Si Putih snoozed peacefully in clean straw near the window. Outside, bright stars took over from the sun. Goodnight, little shepherdess.",
         "quote": "'Tidurlah dengan tenang, esok mentari akan terbit kembali menemani harimu.'",
         "coReading": "💡 Tanya si Kecil: Pejamkan matamu sayang... selamat tidur pulas, mimpi indah berbintang ya.",
-        "image": "images/story35_page10.jpg"
+        "image": "images/story35_page10.jpg",
+        "audio": "audio/story35/page_10.wav"
       }
     ],
-    "legacyId": "story-030-logika"
+    "legacyId": "story-030-logika",
+    "coverAudio": "audio/story35/page_0_cover.wav"
   },
   {
     "id": "story-036-petualangan",
@@ -4682,7 +4700,8 @@
         "textEn": "Beneath towering pine trees, Alfi stood holding the straps of his fox backpack tight. The rustic wooden gate looked so grand, making his little feet pause for a moment.",
         "quote": "'Keberanian bukan berarti tidak takut, melainkan melangkah maju walau merasa ragu.'",
         "coReading": "💡 Tanya si Kecil: Pernahkah kamu merasa sedikit malu atau deg-degan saat pertama kali datang ke tempat baru?",
-        "image": "images/story36_page1.jpg"
+        "image": "images/story36_page1.jpg",
+        "audio": "audio/story36/page_1.wav"
       },
       {
         "number": 2,
@@ -4692,7 +4711,8 @@
         "textEn": "Kiki the little songbird perched on Alfi's shoulder, singing a gentle 'Chirp... tweet!' Mother gently caressed his hair, 'I will be right here waiting, sweet child. Have a wonderful adventure.'",
         "quote": "'Suara kasih dari keluarga adalah bekal terhangat untuk memulai petualangan baru.'",
         "coReading": "💡 Tanya si Kecil: Siapa yang biasanya memeluk dan mencium keningmu sebelum kamu berangkat sekolah?",
-        "image": "images/story36_page2.jpg"
+        "image": "images/story36_page2.jpg",
+        "audio": "audio/story36/page_2.wav"
       },
       {
         "number": 3,
@@ -4702,7 +4722,8 @@
         "textEn": "The kind teacher welcomed them with a warm smile at the open-air pavilion. On round tree stump tables lay natural colorful paints made from green leaf juices and wild flower petals.",
         "quote": "'Alam menyediakan seribu warna indah untuk tangan-tangan mungil yang gemar berkarya.'",
         "coReading": "💡 Tanya si Kecil: Coba sebutkan warna daun yang pernah kamu lihat di sekitar rumah!",
-        "image": "images/story36_page3.jpg"
+        "image": "images/story36_page3.jpg",
+        "audio": "audio/story36/page_3.wav"
       },
       {
         "number": 4,
@@ -4712,7 +4733,8 @@
         "textEn": "Together with Rano, his new friend wearing a round cap, Alfi examined tiny footprints in the damp soil. 'Look, these are tracks from a hopping squirrel!' Alfi whispered joyfully.",
         "quote": "'Mata yang cermat akan selalu menemukan keajaiban kecil di bawah langkah kaki.'",
         "coReading": "💡 Tanya si Kecil: Kamu bisa meniru gaya tupai melompat-lompat lincah?",
-        "image": "images/story36_page4.jpg"
+        "image": "images/story36_page4.jpg",
+        "audio": "audio/story36/page_4.wav"
       },
       {
         "number": 5,
@@ -4722,7 +4744,8 @@
         "textEn": "While walking along the pine trail, the group reached a babbling clear stream. A single fallen tree trunk served as the crossing bridge. Alfi felt his knees tremble softly.",
         "quote": "'Tantangan kecil membuat hati kita belajar percaya pada kekuatan kaki sendiri.'",
         "coReading": "💡 Tanya si Kecil: Apa yang kamu lakukan jika melihat jembatan kecil yang harus diseberangi?",
-        "image": "images/story36_page5.jpg"
+        "image": "images/story36_page5.jpg",
+        "audio": "audio/story36/page_5.wav"
       },
       {
         "number": 6,
@@ -4732,7 +4755,8 @@
         "textEn": "Kiki fluttered across the stream, perching on a river pebble and chirping encouragement. Alfi took a slow, deep breath, feeling the calming scent of pine resin soothe his chest.",
         "quote": "'Satu tarikan napas tenang mampu mengubah rasa takut menjadi keberanian.'",
         "coReading": "💡 Tanya si Kecil: Ayo tarik napas panjang bersama... hembuskan perlahan seperti meniup bulu halus.",
-        "image": "images/story36_page6.jpg"
+        "image": "images/story36_page6.jpg",
+        "audio": "audio/story36/page_6.wav"
       },
       {
         "number": 7,
@@ -4742,7 +4766,8 @@
         "textEn": "One... two... three! Alfi's red boots stepped firmly on the sturdy tree bark. His friends clapped softly in cheer. Alfi made it across safely!",
         "quote": "'Langkah pertama mungkin terasa mendebarkan, namun keberhasilan membawa senyuman lebar.'",
         "coReading": "💡 Tanya si Kecil: Horeee! Hebat sekali Alfi! Berikan tepuk tangan untuk keberanian Alfi!",
-        "image": "images/story36_page7.jpg"
+        "image": "images/story36_page7.jpg",
+        "audio": "audio/story36/page_7.wav"
       },
       {
         "number": 8,
@@ -4752,7 +4777,8 @@
         "textEn": "Beside the fern grove, the children gathered fallen twigs and pinecones to build a mini sanctuary for woodland creatures. Alfi and Rano giggled as they lined the walls with velvety green moss.",
         "quote": "'Bekerja bersama sahabat mengubah tumpukan ranting sederhana menjadi istana megah.'",
         "coReading": "💡 Tanya si Kecil: Jika kamu membuat istana mini di hutan, hewan apa yang ingin kamu ajak bermain?",
-        "image": "images/story36_page8.jpg"
+        "image": "images/story36_page8.jpg",
+        "audio": "audio/story36/page_8.wav"
       },
       {
         "number": 9,
@@ -4762,7 +4788,8 @@
         "textEn": "Snack time arrived. Alfi opened his fox backpack and shared sweet orange slices with his new friends. Kiki joyfully pecked at fruit crumbs beside them.",
         "quote": "'Rasa manis sebuah bekal berlipat ganda ketika dinikmati bersama teman tersayang.'",
         "coReading": "💡 Tanya si Kecil: Mmm... jeruk manis yang segar! Makanan apa yang paling suka kamu bagi ke sahabatmu?",
-        "image": "images/story36_page9.jpg"
+        "image": "images/story36_page9.jpg",
+        "audio": "audio/story36/page_9.wav"
       },
       {
         "number": 10,
@@ -4772,10 +4799,12 @@
         "textEn": "Night settled over his cozy bedroom. The fox backpack hung neatly beside the wooden wardrobe. Alfi slept peacefully under a moss-green quilt, dreaming of wooden bridges and bird songs in the pine woods. Sleep tight, brave little explorer.",
         "quote": "'Tidurlah dengan bangga, hari ini kamu telah melangkah menjadi anak yang tangguh dan berani.'",
         "coReading": "💡 Tanya si Kecil: Pejamkan matamu sayang... peluk bantalmu yang empuk. Selamat tidur, mimpi indah ya.",
-        "image": "images/story36_page10.jpg"
+        "image": "images/story36_page10.jpg",
+        "audio": "audio/story36/page_10.wav"
       }
     ],
-    "legacyId": "story-031-petualangan"
+    "legacyId": "story-031-petualangan",
+    "coverAudio": "audio/story36/page_0_cover.wav"
   },
   {
     "id": "coki-buaya-manis",
@@ -4801,7 +4830,8 @@
         "textEn": "That morning, little Coki the crocodile clutched his frog plushie tight in front of the Leafy Tree Clinic. Today was his very first dental checkup. His little scalloped tail quivered softly, not from the chill, but from anxious jitters about whirring dental tools.",
         "quote": "🐊 'Merasa sedikit takut saat mencoba hal baru adalah hal yang sangat wajar.'",
         "coReading": "💡 Tanya si Kecil: Pernahkah kamu merasa cemas sebelum mengunjungi dokter? Benda apa yang paling membuatmu merasa tenang?",
-        "image": "images/story37_page1.jpg"
+        "image": "images/story37_page1.jpg",
+        "audio": "audio/story37/page_1.wav"
       },
       {
         "number": 2,
@@ -4811,7 +4841,8 @@
         "textEn": "\"Welcome in, little Coki,\" greeted Dr. Bear in a voice as soothing as warm hot cocoa. Inside the clinic, there were no scary buzzing noises. There was only a plush velvet dental chair that tilted gently like a floating cloud swing, and a comforting scent of sweet fresh watermelon.",
         "quote": "🐻 'Kebaikan yang ramah bisa mengubah tempat asing menjadi senyaman rumah.'",
         "coReading": "💡 Tanya si Kecil: Jika kamu bisa memilih aroma di ruangan dokter, aroma buah apa yang paling kamu sukai?",
-        "image": "images/story37_page2.jpg"
+        "image": "images/story37_page2.jpg",
+        "audio": "audio/story37/page_2.wav"
       },
       {
         "number": 3,
@@ -4821,7 +4852,8 @@
         "textEn": "Dr. Bear carried no sharp needles. Instead, he pulled out a tiny round mirror on a polished birch stick. \"Look at this mirror, Coki! It has a very special job: counting all the bright little pearls inside your sweet smile.\"",
         "quote": "🪞 'Alat kecil ini tidak menggigit, ia hanya ingin menyapa setiap gigimu.'",
         "coReading": "💡 Tanya si Kecil: Coba perlihatkan senyumanmu! Berapa banyak gigi yang bisa kamu rasakan dengan ujung lidahmu?",
-        "image": "images/story37_page3.jpg"
+        "image": "images/story37_page3.jpg",
+        "audio": "audio/story37/page_3.wav"
       },
       {
         "number": 4,
@@ -4831,7 +4863,8 @@
         "textEn": "\"Now, can you roar like a sleepy yawning hippo: Aaaaah!\" chuckled Dr. Bear warmly. Coki giggled softly and opened his snout wide. His little white crocodile teeth lined up neatly like washed river pebbles.",
         "quote": "🐊 'Tertawa bersama membuat hal yang menakutkan terasa seperti permainan seru.'",
         "coReading": "💡 Aktivitas Seru: Tirukan bersama si kecil membuka mulut lebar-lebar sambil berkata 'Aaaah' seperti kuda nil yang mengantuk!",
-        "image": "images/story37_page4.jpg"
+        "image": "images/story37_page4.jpg",
+        "audio": "audio/story37/page_4.wav"
       },
       {
         "number": 5,
@@ -4841,7 +4874,8 @@
         "textEn": "Dr. Bear dipped an ultra-soft brush into the watermelon paste. Swish, swish, fluffy pink sweet-scented bubbles began tickling Coki's back molars. \"That tickles!\" Coki thought with a wide grin. There was no pain at all, only merry tickles.",
         "quote": "🪥 'Menyikat gigi dengan lembut menjaga senyuman kita tetap cerah dan sehat.'",
         "coReading": "💡 Tanya si Kecil: Rasa pasta gigi apa yang kamu gunakan di rumah sebelum tidur?",
-        "image": "images/story37_page5.jpg"
+        "image": "images/story37_page5.jpg",
+        "audio": "audio/story37/page_5.wav"
       },
       {
         "number": 6,
@@ -4851,7 +4885,8 @@
         "textEn": "\"Time to rinse, little pal!\" Dr. Bear offered a miniature bamboo cup. From a spout carved like a cheerful goldfish, cool clear water trickled forth. Glug-glug-glug... Coki rinsed merrily and let the bubbly water swirl away into the blue porcelain bowl.",
         "quote": "💧 'Air bersih membasuh semua kotoran kecil dan membawa kesegaran baru.'",
         "coReading": "💡 Tanya si Kecil: Bisakah kamu berkumur tanpa menelan airnya saat menyikat gigi?",
-        "image": "images/story37_page6.jpg"
+        "image": "images/story37_page6.jpg",
+        "audio": "audio/story37/page_6.wav"
       },
       {
         "number": 7,
@@ -4861,7 +4896,8 @@
         "textEn": "Dr. Bear clapped his paws in delight. \"Splendid! Not a single sneaky sugar bug in sight. Your teeth are as gleaming as seashells and as sturdy as young oak twigs!\" Coki peered into the big wall mirror. His smile truly sparkled like tiny bright stars.",
         "quote": "✨ 'Keberanian kecil hari ini menghadiahkan senyuman yang sehat selamanya.'",
         "coReading": "💡 Tanya si Kecil: Bagaimana perasaanmu saat melihat gigimu bersih dan licin setelah disikat?",
-        "image": "images/story37_page7.jpg"
+        "image": "images/story37_page7.jpg",
+        "audio": "audio/story37/page_7.wav"
       },
       {
         "number": 8,
@@ -4871,7 +4907,8 @@
         "textEn": "As a token of bravery, Dr. Bear placed a glowing golden star sticker upon the chest of Coki's green pyjamas. \"A badge of honor for the bravest little crocodile in Hazel Woods,\" whispered Dr. Bear with a playful, friendly wink.",
         "quote": "🌟 'Setiap anak yang berani menghadapi rasa cemasnya berhak mendapatkan bintang emas.'",
         "coReading": "💡 Tanya si Kecil: Apa stiker atau penghargaan yang paling kamu banggakan saat berbuat berani?",
-        "image": "images/story37_page8.jpg"
+        "image": "images/story37_page8.jpg",
+        "audio": "audio/story37/page_8.wav"
       },
       {
         "number": 9,
@@ -4881,7 +4918,8 @@
         "textEn": "The evening sky over Hazel Woods melted into a tranquil apricot purple. Coki skipped joyfully down the leaf-strewn lane, swinging his frog plushie and flashing his sparkling smile at every passing firefly. Going to the dentist was not scary at all!",
         "quote": "🍃 'Rasa cemas yang kita hadapi seringkali berubah menjadi cerita riang yang membanggakan.'",
         "coReading": "💡 Tanya si Kecil: Apa hal menyenangkan yang ingin kamu ceritakan kepada orang tua sebelum tidur malam ini?",
-        "image": "images/story37_page9.jpg"
+        "image": "images/story37_page9.jpg",
+        "audio": "audio/story37/page_9.wav"
       },
       {
         "number": 10,
@@ -4891,9 +4929,11 @@
         "textEn": "In his snug bedroom, Coki nestled under the moss-green quilt. The little mushroom nightlamp cast a warm golden glow across the pillows. With clean teeth and a peaceful heart, Coki closed his eyes, drifting off to sweet dreams of waterlily ponds. Goodnight, brave little Coki.",
         "quote": "🌙 'Malam yang tenang menyambut anak-anak manis dengan senyuman terindah.'",
         "coReading": "💡 Bisikkan ke si Kecil: Selamat tidur anak pemberani, terima kasih sudah merawat senyummu hari ini. Semoga mimpi indah.",
-        "image": "images/story37_page10.jpg"
+        "image": "images/story37_page10.jpg",
+        "audio": "audio/story37/page_10.wav"
       }
-    ]
+    ],
+    "coverAudio": "audio/story37/page_0_cover.wav"
   },
   {
     "id": "pohon-brokoli-mini",
@@ -4919,7 +4959,8 @@
         "textEn": "That evening, warm soup steamed gently upon the cozy family table. But little Rian's brow furrowed. Resting next to his golden baked potatoes were three deep-green broccoli florets, looking entirely unfamiliar and suspicious.",
         "quote": "🥦 'Sesuatu yang belum pernah kita coba memang selalu terasa sedikit menakutkan.'",
         "coReading": "💡 Tanya si Kecil: Sayuran apa yang warnanya paling hijau di mejamu?",
-        "image": "images/story38_page1.jpg"
+        "image": "images/story38_page1.jpg",
+        "audio": "audio/story38/page_1.wav"
       },
       {
         "number": 2,
@@ -4929,7 +4970,8 @@
         "textEn": "Mama smiled gently and adjusted the paper chef hat upon Rian's head. \"Did you know, Chef Rian? This dinner plate isn't just an ordinary plate. It's a Secret Valley where miniature trees of the forest gnomes grow!\"",
         "quote": "👩 'Imajinasi yang ceria bisa mengubah makan malam biasa menjadi petualangan ajaib.'",
         "coReading": "💡 Aktivitas Seru: Pasang mahkota atau topi imajinasi di kepala si kecil sebelum makan malam!",
-        "image": "images/story38_page2.jpg"
+        "image": "images/story38_page2.jpg",
+        "audio": "audio/story38/page_2.wav"
       },
       {
         "number": 3,
@@ -4939,7 +4981,8 @@
         "textEn": "Rian leaned in close. Sure enough! The broccoli stem stood firm like a tiny oak trunk, and its lush crown curled softly like an emerald cloud. A gentle buttery aroma wafted up to greet his nose.",
         "quote": "🌳 'Saat kita mengamati lebih dekat, alam menyimpan bentuk-bentuk yang begitu menakjubkan.'",
         "coReading": "💡 Tanya si Kecil: Mirip pohon apa sayuran brokoli menurut matamu?",
-        "image": "images/story38_page3.jpg"
+        "image": "images/story38_page3.jpg",
+        "audio": "audio/story38/page_3.wav"
       },
       {
         "number": 4,
@@ -4949,7 +4992,8 @@
         "textEn": "Mama picked up a tiny ceramic bowl and sprinkled finely grated cheese. A gentle dusting of white fell softly over the broccoli branches. \"Look, savory cheese snow has just fallen upon your gnome forest!\" whispered Mama merrily.",
         "quote": "🧀 'Sedikit keju dan sentuhan kasih membuat segalanya terasa lebih lezat.'",
         "coReading": "💡 Tanya si Kecil: Pernahkah kamu membayangkan keju parut sebagai salju di piring makanmu?",
-        "image": "images/story38_page4.jpg"
+        "image": "images/story38_page4.jpg",
+        "audio": "audio/story38/page_4.wav"
       },
       {
         "number": 5,
@@ -4959,7 +5003,8 @@
         "textEn": "With his little fork, Rian speared one snowy branch of the broccoli tree. His hand hesitated right in front of his lips. But seeing Mama's reassuring smile, Rian closed his eyes and took the tiniest nibble.",
         "quote": "🌟 'Keberanian dimulai dari satu langkah kecil yang berani mencoba.'",
         "coReading": "💡 Tanya si Kecil: Bagaimana caramu mengumpulkan keberanian sebelum mencicipi makanan baru?",
-        "image": "images/story38_page5.jpg"
+        "image": "images/story38_page5.jpg",
+        "audio": "audio/story38/page_5.wav"
       },
       {
         "number": 6,
@@ -4969,7 +5014,8 @@
         "textEn": "CRUNCH! A delightful crisp sound echoed in Rian's mouth. There was no bitter taste as he had feared. Instead, there was rich butter, savory cheese, and the fresh, naturally sweet crunch of garden greens.",
         "quote": "😋 'Kadang ketakutan kita jauh lebih besar daripada rasa aslinya.'",
         "coReading": "💡 Aktivitas Seru: Tirukan bersama suara 'Kriuk-kriuk' saat mengunyah sayuran renyah!",
-        "image": "images/story38_page6.jpg"
+        "image": "images/story38_page6.jpg",
+        "audio": "audio/story38/page_6.wav"
       },
       {
         "number": 7,
@@ -4979,7 +5025,8 @@
         "textEn": "\"Yum-yum!\" Rian munched through the second and third little trees until nothing was left. His ceramic plate was now squeaky clean. Rian patted his satisfied tummy with great pride.",
         "quote": "🍽️ 'Menghabiskan makanan sehat adalah hadiah terbaik untuk tubuh kita sendiri.'",
         "coReading": "💡 Tanya si Kecil: Bagaimana rasanya jika piring makanmu bisa bersih dan habis dimakan?",
-        "image": "images/story38_page7.jpg"
+        "image": "images/story38_page7.jpg",
+        "audio": "audio/story38/page_7.wav"
       },
       {
         "number": 8,
@@ -4989,7 +5036,8 @@
         "textEn": "Mama poured a small cup of warm white milk to conclude their dinner adventure. Hugging Rian tightly, Mama whispered, \"I am so very proud of you. Today you proved what a brave little boy you are.\"",
         "quote": "🥛 'Pelukan hangat ibu adalah penutup paling manis setelah petualangan yang hebat.'",
         "coReading": "💡 Peluk si Kecil: Berikan pelukan hangat dan katakan kamu bangga atas keberaniannya hari ini.",
-        "image": "images/story38_page8.jpg"
+        "image": "images/story38_page8.jpg",
+        "audio": "audio/story38/page_8.wav"
       },
       {
         "number": 9,
@@ -4999,7 +5047,8 @@
         "textEn": "In the bathroom sink mirror, Rian brushed his teeth merrily. Soft white lather cleaned away every trace of the broccoli forest adventure. His teeth gleamed bright, ready to carry him off to slumber.",
         "quote": "🪥 'Gigi yang bersih membuat tidur malam terasa begitu nyaman dan segar.'",
         "coReading": "💡 Tanya si Kecil: Sudahkah kamu menyikat gigimu malam ini sebelum naik ke ranjang?",
-        "image": "images/story38_page9.jpg"
+        "image": "images/story38_page9.jpg",
+        "audio": "audio/story38/page_9.wav"
       },
       {
         "number": 10,
@@ -5009,9 +5058,11 @@
         "textEn": "The bedroom lamp dimmed soft and low. Tucked under his blue plaid quilt, Rian hugged his pillow tight. In peaceful slumber, he dreamed of flying with butterflies over the friendly canopy of mini broccoli trees. Goodnight, brave little Chef.",
         "quote": "🌙 'Anak yang berani mencoba hal baru akan dihadiahi mimpi-mimpi yang paling indah.'",
         "coReading": "💡 Bisikkan ke si Kecil: Selamat tidur anak hebat, besok ada petualangan baru yang lezat menunggumu.",
-        "image": "images/story38_page10.jpg"
+        "image": "images/story38_page10.jpg",
+        "audio": "audio/story38/page_10.wav"
       }
-    ]
+    ],
+    "coverAudio": "audio/story38/page_0_cover.wav"
   },
   {
     "id": "jembatan-bambu-goyang",
@@ -5037,7 +5088,8 @@
         "textEn": "At the edge of the Bamboo Forest gorge, a brisk breeze made the green leaves rustle and whisper. Far down below, clear river water rushed forcefully against shiny black river stones. Tegar swallowed hard.",
         "quote": "🌊 'Suara derasnya sungai kadang membuat hati kecil kita berdegup lebih kencang.'",
         "coReading": "💡 Tanya si Kecil: Pernahkah kamu melihat sungai yang airnya mengalir sangat cepat?",
-        "image": "images/story39_page1.jpg"
+        "image": "images/story39_page1.jpg",
+        "audio": "audio/story39/page_1.wav"
       },
       {
         "number": 2,
@@ -5047,7 +5099,8 @@
         "textEn": "The only path across to Grandpa's orchard was an old suspension bridge fashioned from yellow bamboo slats. With every gust of wind, the bridge creaked and swayed left and right like an enormous playground swing.",
         "quote": "🎋 'Jembatan bambu itu tampak begitu panjang dan berayun di udara bebas.'",
         "coReading": "💡 Tanya si Kecil: Menurutmu mengapa jembatan bambu bisa bergoyang saat ditiup angin?",
-        "image": "images/story39_page2.jpg"
+        "image": "images/story39_page2.jpg",
+        "audio": "audio/story39/page_2.wav"
       },
       {
         "number": 3,
@@ -5057,7 +5110,8 @@
         "textEn": "\"Ooh-aah! Fear not, my friend!\" chattered Bono the little monkey in a miniature conical farmer's hat. With nimble paws, Bono hopped onto the thick rope handrail and balanced with joyful ease, completely unafraid.",
         "quote": "🐵 'Melihat teman yang tenang dan percaya diri bisa menularkan keberanian ke dalam hati kita.'",
         "coReading": "💡 Aktivitas Seru: Tirukan suara monyet lincah Bono: 'Uuk-aak!' sambil tersenyum!",
-        "image": "images/story39_page3.jpg"
+        "image": "images/story39_page3.jpg",
+        "audio": "audio/story39/page_3.wav"
       },
       {
         "number": 4,
@@ -5067,7 +5121,8 @@
         "textEn": "Tegar gripped the thick coconut-fiber handrail tightly. Cool sweat beaded on his little palms. Very slowly, he set his red flip-flop onto the very first bamboo slat. Creak... the bamboo bowed gently beneath his weight.",
         "quote": "🦶 'Langkah pertama selalu terasa paling berat, tetapi itulah awal dari setiap pencapaian.'",
         "coReading": "💡 Tanya si Kecil: Apa yang kamu lakukan saat kakimu merasa ragu untuk melangkah?",
-        "image": "images/story39_page4.jpg"
+        "image": "images/story39_page4.jpg",
+        "audio": "audio/story39/page_4.wav"
       },
       {
         "number": 5,
@@ -5077,7 +5132,8 @@
         "textEn": "When Tegar glanced down at the churning river, his head spun with dizzy spells. Bono hopped swiftly onto his shoulder and whispered, \"Close your eyes for a moment, take a deep breath, then look straight at the big mango tree on the other side. Don't look down!\"",
         "quote": "🍃 'Tataplah tujuan di depan, jangan biarkan rasa takut di bawah menghentikan langkahmu.'",
         "coReading": "💡 Latihan Bersama: Tarik napas dalam-dalam lewat hidung... lalu hembuskan perlahan lewat mulut bersama si kecil.",
-        "image": "images/story39_page5.jpg"
+        "image": "images/story39_page5.jpg",
+        "audio": "audio/story39/page_5.wav"
       },
       {
         "number": 6,
@@ -5087,7 +5143,8 @@
         "textEn": "Tegar drew in the forest's cool, fragrant air. One step... two steps... The bamboo slats swayed to the rhythm of his walk. Tegar realized the bridge would not snap; it was merely dancing flexibly with every stride.",
         "quote": "🎋 'Kadang kita tidak perlu melawan ayunan, cukup menyesuaikan diri dengan iramanya.'",
         "coReading": "💡 Tanya si Kecil: Bisakah kamu menyeimbangkan tubuhmu dengan berdiri dengan satu kaki seperti bangau?",
-        "image": "images/story39_page6.jpg"
+        "image": "images/story39_page6.jpg",
+        "audio": "audio/story39/page_6.wav"
       },
       {
         "number": 7,
@@ -5097,7 +5154,8 @@
         "textEn": "Right in the middle of the gorge, a gentle breeze caressed Tegar's cheeks. From up here, the valley view was surprisingly magnificent! Blue damselflies danced over the ripples, and purple mountain orchids bloomed along the mossy cliffs.",
         "quote": "🌸 'Di balik rasa takut yang kita lewati, selalu ada keindahan baru yang menunggu.'",
         "coReading": "💡 Tanya si Kecil: Apa hal indah yang pernah kamu temukan setelah kamu berani mencoba hal baru?",
-        "image": "images/story39_page7.jpg"
+        "image": "images/story39_page7.jpg",
+        "audio": "audio/story39/page_7.wav"
       },
       {
         "number": 8,
@@ -5107,7 +5165,8 @@
         "textEn": "Five final careful steps... and HUP! Tegar's feet landed firmly upon the soft, solid earth of the opposite bank. Bono cheered in triumph, doing a celebratory backflip on a tree branch. Tegar looked back at the long bridge. \"I did it!\" he cried proudly.",
         "quote": "🎉 'Rasa bangga yang paling manis adalah saat kita berhasil menaklukkan ketakutan diri sendiri.'",
         "coReading": "💡 Berikan Tos: Berikan tepukan tangan atau tos ceria kepada si kecil untuk merayakan keberaniannya!",
-        "image": "images/story39_page8.jpg"
+        "image": "images/story39_page8.jpg",
+        "audio": "audio/story39/page_8.wav"
       },
       {
         "number": 9,
@@ -5117,7 +5176,8 @@
         "textEn": "Grandpa welcomed them with a basket heaped with sweet, juicy honey mangoes. Resting together on a bamboo pavilion beneath shady branches, Tegar and Bono savored the sweet fruit as peaceful dusk drifted in.",
         "quote": "🥭 'Setiap perjalanan penuh keberanian akan bermuara pada manisnya rasa syukur.'",
         "coReading": "💡 Tanya si Kecil: Buah apa yang paling kamu sukai saat bersantai bersama keluarga?",
-        "image": "images/story39_page9.jpg"
+        "image": "images/story39_page9.jpg",
+        "audio": "audio/story39/page_9.wav"
       },
       {
         "number": 10,
@@ -5127,9 +5187,11 @@
         "textEn": "Night descended accompanied by the gentle, rhythmic lullaby of crickets. Upon a bamboo cot laid with fragrant woven pandan mats, Tegar rested his weary head. His heart was now calm and brave. Tomorrow, that wobbly bridge would no longer be an obstacle, but a dear companion in adventure. Goodnight, brave Tegar.",
         "quote": "🌙 'Tidurlah dengan hati yang kuat, karena kamu lebih berani dari yang kamu bayangkan.'",
         "coReading": "💡 Bisikkan ke si Kecil: Tidurlah yang nyenyak anak pemberani, esok hari selalu siap menyambut langkah hebatmu.",
-        "image": "images/story39_page10.jpg"
+        "image": "images/story39_page10.jpg",
+        "audio": "audio/story39/page_10.wav"
       }
-    ]
+    ],
+    "coverAudio": "audio/story39/page_0_cover.wav"
   },
   {
     "id": "jejak-kaki-pasir",
@@ -5155,7 +5217,8 @@
         "textEn": "The tide receded softly, leaving behind an expanse of smooth white sand as fine as pastry dough. Lani carried her little pail, feeling the bubbly seafoam tickle her bare toes with gentle coolness.",
         "quote": "🌊 'Pantai di sore hari adalah kanvas raksasa yang selalu siap dilukis kembali.'",
         "coReading": "💡 Tanya si Kecil: Pernahkah kamu merasakan pasir pantai yang basah di sela-sela jarimu?",
-        "image": "images/story40_page1.jpg"
+        "image": "images/story40_page1.jpg",
+        "audio": "audio/story40/page_1.wav"
       },
       {
         "number": 2,
@@ -5165,7 +5228,8 @@
         "textEn": "Click-clack! From behind a striped seashell, Koko the little orange crab popped out, waving a friendly claw. Circling his little sand burrow were tiny, perfect sand pearls arranged like dainty lace embroidery.",
         "quote": "🦀 'Setiap makhluk kecil di pantai memiliki cara unik untuk menyapa dunia.'",
         "coReading": "💡 Aktivitas Seru: Gerakkan jari-jarimu seperti capit kepiting kecil: Klip-klap-klip-klap!",
-        "image": "images/story40_page2.jpg"
+        "image": "images/story40_page2.jpg",
+        "audio": "audio/story40/page_2.wav"
       },
       {
         "number": 3,
@@ -5175,7 +5239,8 @@
         "textEn": "\"Look at this, Koko!\" gasped Lani, pointing toward a mound of coral rock. Upon the damp sand was a trail of three-pronged arrow prints: V-V-V. The tracks trotted briskly toward a shallow saltwater pool.",
         "quote": "🔍 'Mencari jejak membuat kita belajar mengamati detail-detail yang tersembunyi.'",
         "coReading": "💡 Tanya si Kecil: Kira-kira hewan apa yang memiliki kaki bercabang tiga seperti itu?",
-        "image": "images/story40_page3.jpg"
+        "image": "images/story40_page3.jpg",
+        "audio": "audio/story40/page_3.wav"
       },
       {
         "number": 4,
@@ -5185,7 +5250,8 @@
         "textEn": "At the trail's end, a petite pearl-gray seagull stood peacefully upon one leg, drying its soft feathers in the evening breeze. Lani tiptoed softly so as not to startle her new feathered friend.",
         "quote": "🕊️ 'Langkah yang pelan dan lembut adalah tanda hormat kita kepada sahabat alam.'",
         "coReading": "💡 Aktivitas Seru: Coba tirukan berjalan berjingkat-jingkat tanpa mengeluarkan suara sama sekali!",
-        "image": "images/story40_page4.jpg"
+        "image": "images/story40_page4.jpg",
+        "audio": "audio/story40/page_4.wav"
       },
       {
         "number": 5,
@@ -5195,7 +5261,8 @@
         "textEn": "Suddenly Koko tapped his claw upon the sand. Another track! It wasn't footprints, but a smooth winding groove like a silk ribbon drawn gently across the dunes. \"Whose secret trail could this be?\" wondered Lani.",
         "quote": "🐚 'Tidak semua pengelana berjalan dengan kaki; sebagian meluncur dengan sabar.'",
         "coReading": "💡 Tanya si Kecil: Hewan apa yang berjalan lambat dan membawa rumahnya ke mana-mana?",
-        "image": "images/story40_page5.jpg"
+        "image": "images/story40_page5.jpg",
+        "audio": "audio/story40/page_5.wav"
       },
       {
         "number": 6,
@@ -5205,7 +5272,8 @@
         "textEn": "The ribbon groove ended beside a mossy tide-pool stone. There, a tiny hermit crab tucked inside a spiral orange shell peeked out bashfully, wiggling its little antennae in friendly greeting.",
         "quote": "🏠 'Rumah yang paling nyaman adalah rumah yang selalu kita bawa dengan rasa damai.'",
         "coReading": "💡 Tanya si Kecil: Mengapa kelomang suka berpindah cangkang saat tubuhnya semakin besar?",
-        "image": "images/story40_page6.jpg"
+        "image": "images/story40_page6.jpg",
+        "audio": "audio/story40/page_6.wav"
       },
       {
         "number": 7,
@@ -5215,7 +5283,8 @@
         "textEn": "Lani looked back over her shoulder. Stretching all along the white strand was a trail of her own little barefoot prints, walking side-by-side with Koko's tiny crab dots. Two different tracks wandering together in harmony.",
         "quote": "👣 'Jejak persahabatan selalu meninggalkan kenangan indah yang menghangatkan hati.'",
         "coReading": "💡 Tanya si Kecil: Pernahkah kamu melihat jejak kakimu sendiri di pasir atau tanah basah?",
-        "image": "images/story40_page7.jpg"
+        "image": "images/story40_page7.jpg",
+        "audio": "audio/story40/page_7.wav"
       },
       {
         "number": 8,
@@ -5225,7 +5294,8 @@
         "textEn": "Whooosh... The quiet evening tide rolled softly ashore, gently smoothing away the footprints of the gull, the hermit crab, and little Lani. The sandy shore returned to pristine calm, ready for night's rest.",
         "quote": "🌊 'Ombak laut selalu mengajarkan kita untuk melepaskan hari yang telah usai dengan damai.'",
         "coReading": "💡 Dengarkan Bersama: Tirukan suara ombak laut yang lembut dan berirama: 'Syuuuush... syuuuush...'",
-        "image": "images/story40_page8.jpg"
+        "image": "images/story40_page8.jpg",
+        "audio": "audio/story40/page_8.wav"
       },
       {
         "number": 9,
@@ -5235,7 +5305,8 @@
         "textEn": "The great ruby-red sun dipped slowly beneath the ocean horizon. Koko waved his little claw once more before tucking back into his snug sand burrow. \"See you tomorrow, dear Koko,\" whispered Lani with a gentle wave.",
         "quote": "🌅 'Setiap hari yang indah ditutup dengan lambaian hangat kepada para sahabat.'",
         "coReading": "💡 Tanya si Kecil: Kepada siapa saja kamu mengucapkan selamat tidur setiap malam?",
-        "image": "images/story40_page9.jpg"
+        "image": "images/story40_page9.jpg",
+        "audio": "audio/story40/page_9.wav"
       },
       {
         "number": 10,
@@ -5245,8 +5316,10 @@
         "textEn": "In the cozy seaside wooden cottage, Lani's bedroom window stood slightly ajar, letting the cool sea breeze and rhythmic ocean murmurs become her bedtime lullaby. Lani closed her eyes under her crisp white quilt, fast asleep with a peaceful heart. Goodnight, sweet Lani.",
         "quote": "🌙 'Biarkan desau ombak yang tenang membawamu ke pulau mimpi yang paling indah.'",
         "coReading": "💡 Bisikkan ke si Kecil: Selamat tidur anak manis, biarkan malam membawakanmu mimpi seindah lautan luas.",
-        "image": "images/story40_page10.jpg"
+        "image": "images/story40_page10.jpg",
+        "audio": "audio/story40/page_10.wav"
       }
-    ]
+    ],
+    "coverAudio": "audio/story40/page_0_cover.wav"
   }
 ]

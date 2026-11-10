@@ -119,13 +119,25 @@
   - Sampul & Halaman 1 s.d. 10 selesai 100% menggunakan `gemini-3.1-flash-tts-preview` voice `Despina`. Diunggah ke R2 bucket `kisah-krayon` & di-seed di Neon Postgres.
 - **Cerita 33 ("Roda Bundar yang Menggelinding")**: ✅ **SUARA WANITA 100% SELESAI (11/11)**
   - Sampul & Halaman 1 s.d. 10 selesai 100% menggunakan `gemini-3.1-flash-tts-preview` voice `Despina`. Diunggah ke R2 bucket `kisah-krayon` & di-seed di Neon Postgres.
-- **Cerita 34 ("Gema Suara di Mulut Gua")**: ⏳ **PROGRES (4/11) SELESAI**
-  - Sampul `page_0_cover.wav` & Hal 1–3 `page_1.wav` s.d. `page_3.wav` selesai & diunggah ke R2. Hal 4 s.d. 10 tertunda kuota harian seluruh API key (~22.9 jam / ~82,500 detik).
-- **Cerita 35 s.d. 36**: Menunggu antrean generasi bertahap dengan model Gemini TTS (Wanita: `Despina`).
+- **Cerita 34 ("Gema Suara di Mulut Gua")**: ✅ **SUARA WANITA 100% SELESAI (11/11)**
+  - Sampul & Halaman 1 s.d. 10 selesai 100% menggunakan `gemini-3.1-flash-tts-preview` voice `Despina`. Format WAV 24kHz Mono 16-bit PCM terverifikasi. Diunggah ke Cloudflare R2 bucket `kisah-krayon` & di-seed di Neon Postgres.
+- **Cerita 35 ("Jam Ranting Matahari")**: ✅ **SUARA WANITA 100% SELESAI (11/11)**
+  - Sampul & Halaman 1 s.d. 10 selesai 100% menggunakan `gemini-3.1-flash-tts-preview` voice `Despina`. Format WAV 24kHz Mono 16-bit PCM terverifikasi. Diunggah ke Cloudflare R2 bucket `kisah-krayon` & di-seed di Neon Postgres.
+- **Cerita 36 ("Hari Pertama di Sekolah Alam")**: ✅ **SUARA WANITA 100% SELESAI (11/11)**
+  - Sampul `page_0_cover.wav` & Hal 1–10 (`page_1.wav` s.d. `page_10.wav`) selesai 100% menggunakan `gemini-3.1-flash-tts-preview` voice `Despina`. Format WAV 24kHz Mono 16-bit PCM terverifikasi. Diunggah ke Cloudflare R2 bucket `kisah-krayon` & di-seed di Neon Postgres.
+- **Cerita 37 ("Pemeriksaan Gigi Si Buaya Manis")**: ✅ **SUARA WANITA 100% SELESAI (11/11)**
+  - Sampul & Halaman 1 s.d. 10 selesai 100% menggunakan `gemini-3.1-flash-tts-preview` voice `Despina`. Format WAV 24kHz Mono 16-bit PCM terverifikasi. Diunggah ke Cloudflare R2 bucket `kisah-krayon` & di-seed di Neon Postgres.
+- **Cerita 38 ("Pohon Brokoli Mini Ajaib")**: ✅ **SUARA WANITA 100% SELESAI (11/11)**
+  - Sampul & Halaman 1 s.d. 10 selesai 100% menggunakan `gemini-3.1-flash-tts-preview` voice `Despina`. Format WAV 24kHz Mono 16-bit PCM terverifikasi. Diunggah ke Cloudflare R2 bucket `kisah-krayon` & di-seed di Neon Postgres.
+- **Cerita 39 ("Jembatan Bambu Goyang")**: ✅ **SUARA WANITA 100% SELESAI (11/11)**
+  - Sampul & Halaman 1 s.d. 10 selesai 100% menggunakan `gemini-3.1-flash-tts-preview` voice `Despina`. Format WAV 24kHz Mono 16-bit PCM terverifikasi. Diunggah ke Cloudflare R2 bucket `kisah-krayon` & di-seed di Neon Postgres.
+- **Cerita 40 ("Jejak Kaki Rahasia di Pasir")**: ✅ **SUARA WANITA 100% SELESAI (11/11)**
+  - Sampul & Halaman 1 s.d. 10 selesai 100% menggunakan `gemini-3.1-flash-tts-preview` voice `Despina`. Format WAV 24kHz Mono 16-bit PCM terverifikasi. Diunggah ke Cloudflare R2 bucket `kisah-krayon` & di-seed di Neon Postgres.
+- **Status Audio Keseluruhan**: ✅ **Cerita 1 s.d. 40 (Seluruh 40 Buku Terbit) SUARA WANITA 100% SELESAI (440 file audio narasi halaman + 40 file cover = 480 file audio)**. Tersinkronisasi penuh di Cloudflare R2 dan Neon Postgres.
 
 ### ⏳ Pending Work for Next Sessions
-- **Audio Completion**:
-  - Tuntaskan Halaman 6 s.d. 10 Cerita 9 dan lanjutkan Cerita 10 s.d. 36 secara bertahap per halaman (`page_0_cover.wav` s.d. `page_10.wav`).
+- **Audio Batch Berikutnya**:
+  - Cerita 41 s.d. 105 akan diproduksi audionya seiring atau setelah fase produksi ilustrasi selesai.
 - **Story 41 s.d. 105 (Batch 2 Naskah: 100% SELESAI)**:
   - **Cerita 41 s.d. 105 (65 Cerita / 650 Halaman)**: ✅ **100% SELESAI**. Seluruh naskah dwibahasa (ID/EN) 1 Cover + 10 Halaman per cerita telah selesai dipoles secara sastrawi & puitis di `data/stories_full.json`, lengkap dengan `quote`, `coReading`, dan `imagePrompt` (4:3 horizontal, 4 limbs constraint, bead dot eyes). Siap masuk fase produksi ilustrasi bertahap menggunakan `google/nano-banana-2.1`.
 
@@ -210,8 +222,20 @@ Setiap berkas narasi audio (*voiceover*) cerita anak wajib mematuhi standar kons
    - **Cerita 25 ("Hewan Hutan Mengucap Selamat Tidur")**: ✅ **SUARA WANITA 100% LENGKAP (11/11)** (`Despina` via `gemini-3.1-flash-tts-preview`). Diunggah ke R2 bucket `kisah-krayon` & di-seed di Neon Postgres.
    - **Cerita 26 ("Rahasia Jungkat-Jungkit Kayu")**: ✅ **SUARA WANITA 100% LENGKAP (11/11)** (`Despina` via `gemini-3.1-flash-tts-preview`). Diunggah ke R2 bucket `kisah-krayon` & di-seed di Neon Postgres.
    - **Cerita 27 ("Batu Tenggelam, Perahu Terapung")**: ✅ **SUARA WANITA 100% LENGKAP (11/11)** (`Despina` via `gemini-3.1-flash-tts-preview`). Diunggah ke R2 bucket `kisah-krayon` & di-seed di Neon Postgres.
-   - **Cerita 28 ("Bayangan Tubuh yang Berubah Ukuran")**: ⏳ **PROGRES (4/11)** (Cover `page_0_cover.wav` & Hal 1–3 `page_1.wav` s.d. `page_3.wav` selesai & diunggah ke R2). Hal 4 s.d. 10 tertunda kuota harian seluruh API key (~2 jam / ~7,300 detik).
-   - **Cerita 29 s.d. 105**: Siap diproses bertahap per halaman (Wanita: `Despina`).
+   - **Cerita 28 ("Bayangan Tubuh yang Berubah Ukuran")**: ✅ **SUARA WANITA 100% LENGKAP (11/11)** (`Despina` via `gemini-3.1-flash-tts-preview`). Diunggah ke R2 bucket `kisah-krayon` & di-seed di Neon Postgres.
+   - **Cerita 29 ("Kalung Buah Pola Tiga Warna")**: ✅ **SUARA WANITA 100% LENGKAP (11/11)** (`Despina` via `gemini-3.1-flash-tts-preview`). Diunggah ke R2 bucket `kisah-krayon` & di-seed di Neon Postgres.
+   - **Cerita 30 ("Sulap Warna Kunyit & Bunga Telang")**: ✅ **SUARA WANITA 100% LENGKAP (11/11)** (`Despina` via `gemini-3.1-flash-tts-preview`). Diunggah ke R2 bucket `kisah-krayon` & di-seed di Neon Postgres.
+   - **Cerita 31 ("Tetesan Embun yang Menghilang")**: ✅ **SUARA WANITA 100% LENGKAP (11/11)** (`Despina` via `gemini-3.1-flash-tts-preview`). Diunggah ke R2 bucket `kisah-krayon` & di-seed di Neon Postgres.
+   - **Cerita 32 ("Batu Hitam Penarik Pasir Besi")**: ✅ **SUARA WANITA 100% LENGKAP (11/11)** (`Despina` via `gemini-3.1-flash-tts-preview`). Diunggah ke R2 bucket `kisah-krayon` & di-seed di Neon Postgres.
+   - **Cerita 33 ("Roda Bundar yang Menggelinding")**: ✅ **SUARA WANITA 100% LENGKAP (11/11)** (`Despina` via `gemini-3.1-flash-tts-preview`). Diunggah ke R2 bucket `kisah-krayon` & di-seed di Neon Postgres.
+   - **Cerita 34 ("Gema Suara di Mulut Gua")**: ✅ **SUARA WANITA 100% LENGKAP (11/11)** (`Despina` via `gemini-3.1-flash-tts-preview`). Diunggah ke R2 bucket `kisah-krayon` & di-seed di Neon Postgres.
+   - **Cerita 35 ("Jam Ranting Matahari")**: ✅ **SUARA WANITA 100% LENGKAP (11/11)** (`Despina` via `gemini-3.1-flash-tts-preview`). Diunggah ke R2 bucket `kisah-krayon` & di-seed di Neon Postgres.
+   - **Cerita 36 ("Hari Pertama di Sekolah Alam")**: ✅ **SUARA WANITA 100% LENGKAP (11/11)** (`Despina` via `gemini-3.1-flash-tts-preview`). Diunggah ke R2 bucket `kisah-krayon` & di-seed di Neon Postgres.
+   - **Cerita 37 ("Pemeriksaan Gigi Si Buaya Manis")**: ✅ **SUARA WANITA 100% LENGKAP (11/11)** (`Despina` via `gemini-3.1-flash-tts-preview`). Diunggah ke R2 bucket `kisah-krayon` & di-seed di Neon Postgres.
+   - **Cerita 38 ("Pohon Brokoli Mini Ajaib")**: ✅ **SUARA WANITA 100% LENGKAP (11/11)** (`Despina` via `gemini-3.1-flash-tts-preview`). Diunggah ke R2 bucket `kisah-krayon` & di-seed di Neon Postgres.
+   - **Cerita 39 ("Jembatan Bambu Goyang")**: ✅ **SUARA WANITA 100% LENGKAP (11/11)** (`Despina` via `gemini-3.1-flash-tts-preview`). Diunggah ke R2 bucket `kisah-krayon` & di-seed di Neon Postgres.
+   - **Cerita 40 ("Jejak Kaki Rahasia di Pasir")**: ✅ **SUARA WANITA 100% LENGKAP (11/11)** (`Despina` via `gemini-3.1-flash-tts-preview`). Diunggah ke R2 bucket `kisah-krayon` & di-seed di Neon Postgres.
+   - **Cerita 41 s.d. 105**: Siap diproses bertahap per halaman setelah fase produksi ilustrasi batch berikutnya.
 
 ---
 
