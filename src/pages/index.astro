@@ -17,45 +17,46 @@ let loadError: string | null = null;
 
 try {
   viewer = await getViewer(Astro);
-  readable = await readableStoryIds(db, viewer);
+  const [readableIds, freeList, teaserList, allList] = await Promise.all([
+    readableStoryIds(db, viewer),
+    db
+      .select({
+        id: stories.id,
+        storyNumber: stories.storyNumber,
+        title: stories.title,
+        categoryLabel: stories.categoryLabel,
+        ageGroup: stories.ageGroup,
+        moralTheme: stories.moralTheme,
+        synopsis: stories.synopsis,
+        coverImage: stories.coverImage,
+      })
+      .from(stories)
+      .where(and(eq(stories.isPublished, true), eq(stories.isFree, true)))
+      .orderBy(asc(stories.storyNumber))
+      .limit(3),
+    db
+      .select({
+        id: stories.id,
+        storyNumber: stories.storyNumber,
+        title: stories.title,
+        categoryLabel: stories.categoryLabel,
+        ageGroup: stories.ageGroup,
+        coverImage: stories.coverImage,
+      })
+      .from(stories)
+      .where(and(eq(stories.isPublished, true), eq(stories.isFree, false)))
+      .orderBy(asc(stories.storyNumber))
+      .limit(6),
+    db
+      .select({ id: stories.id })
+      .from(stories)
+      .where(eq(stories.isPublished, true)),
+  ]);
 
-  // Fetch free sampler stories (Stories #1, #2, #3)
-  freeStories = await db
-    .select({
-      id: stories.id,
-      storyNumber: stories.storyNumber,
-      title: stories.title,
-      categoryLabel: stories.categoryLabel,
-      ageGroup: stories.ageGroup,
-      moralTheme: stories.moralTheme,
-      synopsis: stories.synopsis,
-      coverImage: stories.coverImage,
-    })
-    .from(stories)
-    .where(and(eq(stories.isPublished, true), eq(stories.isFree, true)))
-    .orderBy(asc(stories.storyNumber))
-    .limit(3);
-
-  // Fetch teaser stories (#4 to #9)
-  teaserStories = await db
-    .select({
-      id: stories.id,
-      storyNumber: stories.storyNumber,
-      title: stories.title,
-      categoryLabel: stories.categoryLabel,
-      ageGroup: stories.ageGroup,
-      coverImage: stories.coverImage,
-    })
-    .from(stories)
-    .where(and(eq(stories.isPublished, true), eq(stories.isFree, false)))
-    .orderBy(asc(stories.storyNumber))
-    .limit(6);
-
-  const all = await db
-    .select({ id: stories.id })
-    .from(stories)
-    .where(eq(stories.isPublished, true));
-  totalStoriesCount = all.length;
+  readable = readableIds;
+  freeStories = freeList;
+  teaserStories = teaserList;
+  totalStoriesCount = allList.length;
 } catch (err: any) {
   console.error('[index.astro] Error loading homepage data:', err);
   loadError = err?.message || String(err);
@@ -223,7 +224,7 @@ try {
         <article class="spotlight-card">
           <div class="spotlight-cover-wrap">
             <img
-              src={`/${s.coverImage}`}
+              src={`/thumbnails/${s.coverImage}`}
               alt={s.title}
               width="400"
               height="300"
@@ -361,7 +362,7 @@ try {
         <a href="/perpustakaan" class="teaser-card">
           <div class="teaser-img-wrap">
             <img
-              src={`/${s.coverImage}`}
+              src={`/thumbnails/${s.coverImage}`}
               alt={s.title}
               width="300"
               height="225"

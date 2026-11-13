@@ -17,24 +17,28 @@ export const GET: APIRoute = async ({ params }) => {
       return new Response(`Audio not found in R2: ${r2Key}`, { status: 404 });
     }
 
-    let body: any = res.Body;
-    if (typeof (body as any)?.transformToWebStream === 'function') {
-      body = (body as any).transformToWebStream();
-    } else if (typeof Readable?.toWeb === 'function' && !(body instanceof ReadableStream) && !(body instanceof Uint8Array) && !(body instanceof Buffer)) {
-      body = Readable.toWeb(body as Readable);
+    let body: unknown = res.Body;
+    const rawBody: unknown = res.Body;
+    if (rawBody && typeof rawBody === 'object' && 'transformToWebStream' in rawBody && typeof (rawBody as { transformToWebStream: () => unknown }).transformToWebStream === 'function') {
+      body = (rawBody as { transformToWebStream: () => unknown }).transformToWebStream();
+    } else if (typeof Readable?.toWeb === 'function' && rawBody && !(rawBody instanceof Uint8Array) && !(rawBody instanceof ReadableStream)) {
+      body = Readable.toWeb(rawBody as Readable);
     }
 
-    return new Response(body, {
+    const contentType = filename.endsWith('.m4a') ? 'audio/mp4' : (res.ContentType || 'audio/wav');
+
+    return new Response(body as unknown as BodyInit, {
       status: 200,
       headers: {
-        'Content-Type': res.ContentType || 'audio/wav',
+        'Content-Type': contentType,
         ...(res.ContentLength ? { 'Content-Length': String(res.ContentLength) } : {}),
         'Cache-Control': 'public, max-age=31536000, immutable',
         ...(res.ETag ? { 'ETag': res.ETag } : {}),
       },
     });
-  } catch (err: any) {
-    console.error(`Error streaming ${r2Key}:`, err);
-    return new Response(`Error fetching from R2: ${err?.message || String(err)}`, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`Error streaming ${r2Key}:`, message);
+    return new Response(`Error fetching from R2: ${message}`, { status: 500 });
   }
 };

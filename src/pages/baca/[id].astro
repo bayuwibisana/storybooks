@@ -81,22 +81,23 @@ if (!story) {
 const access = accessLevel(story, viewer);
 const isLocked = access === 'locked';
 
-// Fetch all published stories for quick jump drawer navigation
-const allStories = await db
-  .select({
-    id: stories.id,
-    storyNumber: stories.storyNumber,
-    title: stories.title,
-    titleEn: stories.titleEn,
-    categoryLabel: stories.categoryLabel,
-    coverImage: stories.coverImage,
-    isFree: stories.isFree,
-  })
-  .from(stories)
-  .where(eq(stories.isPublished, true))
-  .orderBy(asc(stories.storyNumber));
-
-const readable = await readableStoryIds(db, viewer);
+// Fetch all published stories and readable entitlements concurrently
+const [allStories, readable] = await Promise.all([
+  db
+    .select({
+      id: stories.id,
+      storyNumber: stories.storyNumber,
+      title: stories.title,
+      titleEn: stories.titleEn,
+      categoryLabel: stories.categoryLabel,
+      coverImage: stories.coverImage,
+      isFree: stories.isFree,
+    })
+    .from(stories)
+    .where(eq(stories.isPublished, true))
+    .orderBy(asc(stories.storyNumber)),
+  readableStoryIds(db, viewer),
+]);
 
 // Feature Flag: Show audio in local dev (import.meta.env.DEV) or if PUBLIC_ENABLE_AUDIO=true is configured
 const isAudioFeatureEnabled = import.meta.env.DEV || import.meta.env.PUBLIC_ENABLE_AUDIO === 'true';
@@ -120,38 +121,40 @@ let showAudioPlayer = false;
 let hasAudio = false;
 
 if (!isLocked) {
-  pages = await db
-    .select({
-      number: storyPages.number,
-      title: storyPages.title,
-      titleEn: storyPages.titleEn,
-      textId: storyPages.textId,
-      textEn: storyPages.textEn,
-      quote: storyPages.quote,
-      coReading: storyPages.coReading,
-      image: storyPages.image,
-      audio: storyPages.audio,
-      audioEnabled: storyPages.audioEnabled,
-    })
-    .from(storyPages)
-    .where(eq(storyPages.storyId, story.id))
-    .orderBy(asc(storyPages.number));
+  const [pagesResult, nextResult] = await Promise.all([
+    db
+      .select({
+        number: storyPages.number,
+        title: storyPages.title,
+        titleEn: storyPages.titleEn,
+        textId: storyPages.textId,
+        textEn: storyPages.textEn,
+        quote: storyPages.quote,
+        coReading: storyPages.coReading,
+        image: storyPages.image,
+        audio: storyPages.audio,
+        audioEnabled: storyPages.audioEnabled,
+      })
+      .from(storyPages)
+      .where(eq(storyPages.storyId, story.id))
+      .orderBy(asc(storyPages.number)),
+    db
+      .select({
+        id: stories.id,
+        storyNumber: stories.storyNumber,
+        title: stories.title,
+      })
+      .from(stories)
+      .where(and(eq(stories.isPublished, true), eq(stories.storyNumber, story.storyNumber + 1)))
+      .limit(1),
+  ]);
 
+  pages = pagesResult;
   hasAudio = pages.some((p) => Boolean(p.audio)) || story.storyNumber <= 3;
   showAudioPlayer = isAudioFeatureEnabled && hasAudio;
 
-  const [next] = await db
-    .select({
-      id: stories.id,
-      storyNumber: stories.storyNumber,
-      title: stories.title,
-    })
-    .from(stories)
-    .where(and(eq(stories.isPublished, true), eq(stories.storyNumber, story.storyNumber + 1)))
-    .limit(1);
-
-  if (next) {
-    nextStory = next;
+  if (nextResult && nextResult[0]) {
+    nextStory = nextResult[0];
   }
 }
 ---
@@ -317,14 +320,17 @@ if (!isLocked) {
             id="reader-image"
             src={`/${story.coverImage}`}
             alt={story.title}
-            class="reader-image-el"
+            fetchpriority="high"
+            decoding="async"
+            class="reader-image-el is-loading"
+            onload="this.classList.remove('is-loading'); document.getElementById('image-loader')?.classList.add('is-hidden');"
           />
 
-          <!-- Image Loading State Overlay -->
+          <!-- Instant SSR Crayon Paper Shimmer Skeleton -->
           <div id="image-loader" class="image-loader-overlay">
-            <div style="display:flex;flex-direction:column;align-items:center;gap:0.75rem">
+            <div class="shimmer-inner">
               <div class="crayon-spinner"></div>
-              <span style="font-size:0.8rem;font-weight:700;color:#78716c;letter-spacing:0.02em">Menyiapkan ilustrasi krayon...</span>
+              <span class="shimmer-text">Menyiapkan ilustrasi krayon...</span>
             </div>
           </div>
 
@@ -515,7 +521,7 @@ if (!isLocked) {
           >
             <div class="drawer-thumb-wrap">
               <img
-                src={`/${s.coverImage}`}
+                data-src={`/thumbnails/${s.coverImage}`}
                 alt={s.title}
                 loading="lazy"
                 class="drawer-thumb"
@@ -792,17 +798,44 @@ if (!isLocked) {
     height: 100%;
     object-fit: cover;
     display: block;
-    transition: opacity 0.25s ease;
+    transition: opacity 0.35s ease;
+  }
+  .reader-image-el.is-loading {
+    opacity: 0;
   }
   .image-loader-overlay {
     position: absolute;
     inset: 0;
-    background: #efe8dc;
-    display: none;
+    background: linear-gradient(135deg, #f5efe6 0%, #ebe2d3 50%, #f5efe6 100%);
+    background-size: 200% 200%;
+    animation: crayonShimmerPulse 2s ease-in-out infinite;
+    display: flex;
     align-items: center;
     justify-content: center;
     z-index: 3;
-    transition: opacity 0.25s ease;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  .image-loader-overlay.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .shimmer-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .shimmer-text {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #78716c;
+    letter-spacing: 0.02em;
+  }
+  @keyframes crayonShimmerPulse {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
   }
   .page-indicator-badge {
     position: absolute;
@@ -1281,11 +1314,12 @@ if (!isLocked) {
     z-index: 160;
     transform: translateX(-100%);
     transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    display: flex;
+    display: none;
     flex-direction: column;
     box-shadow: 6px 0 28px rgba(0, 0, 0, 0.16);
   }
   .story-drawer.open {
+    display: flex;
     transform: translateX(0);
   }
 
@@ -1650,8 +1684,20 @@ if (!isLocked) {
 
   function openStoryDrawer() {
     if (storyDrawer && drawerBackdrop) {
-      storyDrawer.classList.add('open');
-      drawerBackdrop.classList.add('open');
+      storyDrawer.style.display = 'flex';
+      // Lazy load drawer thumbnails only when the drawer is actually opened!
+      const lazyThumbs = storyDrawer.querySelectorAll('.drawer-thumb[data-src]');
+      lazyThumbs.forEach((img) => {
+        const ds = img.getAttribute('data-src');
+        if (ds) {
+          img.setAttribute('src', ds);
+          img.removeAttribute('data-src');
+        }
+      });
+      requestAnimationFrame(() => {
+        storyDrawer.classList.add('open');
+        drawerBackdrop.classList.add('open');
+      });
       document.body.style.overflow = 'hidden';
       // Auto-scroll current story into view
       const currentItem = document.querySelector('.drawer-story-item.is-current');
@@ -1669,6 +1715,11 @@ if (!isLocked) {
       storyDrawer.classList.remove('open');
       drawerBackdrop.classList.remove('open');
       document.body.style.overflow = '';
+      setTimeout(() => {
+        if (!storyDrawer.classList.contains('open')) {
+          storyDrawer.style.display = 'none';
+        }
+      }, 300);
     }
   }
 
@@ -1721,10 +1772,11 @@ if (!isLocked) {
 
     let imageLoadSeq = 0;
 
+    let preloadTimer = null;
     function preloadUpcomingPages(step) {
-      // Preload next 2 upcoming pages into browser cache
-      const targets = [step + 1, step + 2];
-      targets.forEach((targetStep) => {
+      if (preloadTimer) clearTimeout(preloadTimer);
+      preloadTimer = setTimeout(() => {
+        const targetStep = step + 1;
         if (targetStep > 0 && targetStep <= pagesData.length) {
           const targetPage = pagesData[targetStep - 1];
           if (targetPage && targetPage.image) {
@@ -1732,7 +1784,7 @@ if (!isLocked) {
             img.src = `/${targetPage.image}`;
           }
         }
-      });
+      }, step === 0 ? 1500 : 700);
     }
 
     const readerImage = document.getElementById('reader-image');
@@ -1831,10 +1883,10 @@ if (!isLocked) {
       const isCover = currentStep === 0;
       let audioPath = '';
       if (isCover) {
-        audioPath = `/audio/story${storyData.storyNumber}/page_0_cover.wav`;
+        audioPath = `/audio/story${storyData.storyNumber}/page_0_cover.m4a`;
       } else {
         const p = pagesData[currentStep - 1];
-        audioPath = p && p.audio ? `/${p.audio}` : `/audio/story${storyData.storyNumber}/page_${currentStep}.wav`;
+        audioPath = p && p.audio ? `/${p.audio.replace(/\.wav$/i, '.m4a')}` : `/audio/story${storyData.storyNumber}/page_${currentStep}.m4a`;
       }
 
       const audio = new Audio(audioPath);
@@ -1949,48 +2001,40 @@ if (!isLocked) {
       const imageLoader = document.getElementById('image-loader');
       const seq = ++imageLoadSeq;
 
-      // Predictive preload of upcoming pages
-      preloadUpcomingPages(currentStep);
-
       const testImg = new Image();
       testImg.src = imgPath;
 
       if (testImg.complete && testImg.naturalWidth > 0) {
         // Already cached in browser! Instant seamless swap
         if (imageLoader) {
-          imageLoader.style.display = 'none';
-          imageLoader.style.opacity = '0';
+          imageLoader.classList.add('is-hidden');
         }
         readerImage.src = imgPath;
-        readerImage.style.opacity = '1';
+        readerImage.classList.remove('is-loading');
+        preloadUpcomingPages(currentStep);
       } else {
-        // Not yet loaded: show cozy loader and dim previous image
+        // Not yet loaded: show cozy skeleton shimmer and fade out previous image
         if (imageLoader) {
-          imageLoader.style.display = 'flex';
-          imageLoader.style.opacity = '1';
+          imageLoader.classList.remove('is-hidden');
         }
-        readerImage.style.opacity = '0.3';
+        readerImage.classList.add('is-loading');
 
         testImg.onload = () => {
           if (seq !== imageLoadSeq) return; // Prevent race conditions on fast clicking
           readerImage.src = imgPath;
-          readerImage.style.opacity = '1';
+          readerImage.classList.remove('is-loading');
           if (imageLoader) {
-            imageLoader.style.opacity = '0';
-            setTimeout(() => {
-              if (seq === imageLoadSeq && imageLoader) {
-                imageLoader.style.display = 'none';
-              }
-            }, 250);
+            imageLoader.classList.add('is-hidden');
           }
+          preloadUpcomingPages(currentStep);
         };
 
         testImg.onerror = () => {
           if (seq !== imageLoadSeq) return;
           readerImage.src = imgPath;
-          readerImage.style.opacity = '1';
+          readerImage.classList.remove('is-loading');
           if (imageLoader) {
-            imageLoader.style.display = 'none';
+            imageLoader.classList.add('is-hidden');
           }
         };
       }

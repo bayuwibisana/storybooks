@@ -18,24 +18,27 @@ let loadError: string | null = null;
 
 try {
   viewer = await getViewer(Astro);
-  readable = await readableStoryIds(db, viewer);
+  const [readableIds, storyRows] = await Promise.all([
+    readableStoryIds(db, viewer),
+    db
+      .select({
+        id: stories.id,
+        storyNumber: stories.storyNumber,
+        title: stories.title,
+        category: stories.category,
+        categoryLabel: stories.categoryLabel,
+        ageGroup: stories.ageGroup,
+        synopsis: stories.synopsis,
+        coverImage: stories.coverImage,
+        isFree: stories.isFree,
+      })
+      .from(stories)
+      .where(eq(stories.isPublished, true))
+      .orderBy(asc(stories.storyNumber)),
+  ]);
 
-  rows = await db
-    .select({
-      id: stories.id,
-      storyNumber: stories.storyNumber,
-      title: stories.title,
-      category: stories.category,
-      categoryLabel: stories.categoryLabel,
-      ageGroup: stories.ageGroup,
-      synopsis: stories.synopsis,
-      coverImage: stories.coverImage,
-      isFree: stories.isFree,
-    })
-    .from(stories)
-    .where(eq(stories.isPublished, true))
-    .orderBy(asc(stories.storyNumber));
-
+  readable = readableIds;
+  rows = storyRows;
   lockedCount = rows.filter((s) => !readable.has(s.id)).length;
   payable = rows.filter((s) => !s.isFree);
 } catch (err: any) {
@@ -159,7 +162,7 @@ try {
             <div class="card-cover-container">
               {s.coverImage ? (
                 <img
-                  src={`/${s.coverImage}`}
+                  src={`/thumbnails/${s.coverImage}`}
                   alt={s.title}
                   loading="lazy"
                   width="400"

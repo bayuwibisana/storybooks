@@ -13,7 +13,7 @@ export async function getR2Object(key: string) {
         if (object) {
           return {
             Body: object.body, // Native ReadableStream
-            ContentType: object.httpMetadata?.contentType || (key.endsWith('.wav') ? 'audio/wav' : 'image/jpeg'),
+            ContentType: object.httpMetadata?.contentType || (key.endsWith('.m4a') ? 'audio/mp4' : key.endsWith('.wav') ? 'audio/wav' : key.endsWith('.webp') ? 'image/webp' : 'image/jpeg'),
             ContentLength: object.size,
             ETag: object.httpEtag,
           };
@@ -70,7 +70,7 @@ export async function getR2Object(key: string) {
         const buffer = await fs.readFile(localFilePath);
         return {
           Body: buffer,
-          ContentType: key.endsWith('.wav') ? 'audio/wav' : 'image/jpeg',
+          ContentType: key.endsWith('.m4a') ? 'audio/mp4' : key.endsWith('.wav') ? 'audio/wav' : key.endsWith('.webp') ? 'image/webp' : 'image/jpeg',
           ContentLength: stat.size,
           ETag: `"${stat.mtimeMs}"`,
         };
